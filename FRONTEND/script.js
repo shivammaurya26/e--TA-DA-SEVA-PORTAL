@@ -21,7 +21,7 @@ window.addEventListener("DOMContentLoaded", () => {
     currentUser = JSON.parse(savedUser);
     setupRoleViews();
     switchView("dashboard-view");
-    
+
     // Go to default section based on role
     if (currentUser.role === "Employee") {
       switchDashboardSection("db-overview", document.querySelector(".sidebar-menu li.employee-only"));
@@ -35,7 +35,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
   // Generate captcha
   generateCaptcha();
-  
+
   // Render lucide icons
   lucide.createIcons();
 });
@@ -81,21 +81,21 @@ function generateCaptcha() {
   const canvas = document.getElementById("captcha-canvas");
   if (!canvas) return;
   const ctx = canvas.getContext("2d");
-  
+
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  
+
   let text = "";
   for (let i = 0; i < 5; i++) {
     text += CAPTCHA_CHARS.charAt(Math.floor(Math.random() * CAPTCHA_CHARS.length));
   }
   currentCaptchaText = text;
-  
-  document.getElementById("captcha-text-display").innerText = ""; 
+
+  document.getElementById("captcha-text-display").innerText = "";
 
   // Background
   ctx.fillStyle = "#fafbfc";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-  
+
   // Distortion lines
   const colors = ["#cbd5e1", "#94a3b8", "#10b981", "#cfa856"];
   for (let i = 0; i < 6; i++) {
@@ -106,29 +106,29 @@ function generateCaptcha() {
     ctx.lineTo(Math.random() * canvas.width, Math.random() * canvas.height);
     ctx.stroke();
   }
-  
+
   // Distort background points
   for (let i = 0; i < 50; i++) {
     ctx.fillStyle = colors[Math.floor(Math.random() * colors.length)];
     ctx.fillRect(Math.random() * canvas.width, Math.random() * canvas.height, 2, 2);
   }
-  
+
   ctx.font = "bold 26px 'Outfit', sans-serif";
   ctx.textBaseline = "middle";
-  
+
   const charWidth = (canvas.width - 40) / 5;
   for (let i = 0; i < text.length; i++) {
     ctx.fillStyle = i % 2 === 0 ? "#0b2240" : "#162a45";
     ctx.save();
-    
+
     const x = 20 + i * charWidth + Math.random() * 5;
     const y = canvas.height / 2 + (Math.random() * 8 - 4);
-    
+
     const angle = (Math.random() * 20 - 10) * Math.PI / 180;
     ctx.translate(x, y);
     ctx.rotate(angle);
     ctx.fillText(text.charAt(i), 0, 0);
-    
+
     ctx.restore();
   }
 }
@@ -139,7 +139,7 @@ function generateCaptcha() {
 function switchView(viewId) {
   const views = document.querySelectorAll(".app-view");
   views.forEach(view => view.classList.remove("active"));
-  
+
   const activeView = document.getElementById(viewId);
   if (activeView) {
     activeView.classList.add("active");
@@ -155,7 +155,7 @@ function switchView(viewId) {
   } else if (viewId === "forgot-password-view") {
     resetForgotForm();
   }
-  
+
   lucide.createIcons();
   window.scrollTo(0, 0);
 }
@@ -163,18 +163,18 @@ function switchView(viewId) {
 function switchDashboardSection(sectionId, menuElement) {
   const sections = document.querySelectorAll(".dashboard-section");
   sections.forEach(sec => sec.classList.remove("active"));
-  
+
   const targetSection = document.getElementById(sectionId);
   if (targetSection) {
     targetSection.classList.add("active");
   }
-  
+
   const menuItems = document.querySelectorAll(".sidebar-menu .menu-item");
   menuItems.forEach(item => item.classList.remove("active"));
   if (menuElement) {
     menuElement.classList.add("active");
   }
-  
+
   // Section specific refreshes
   if (sectionId === "db-overview") {
     refreshOverviewDashboard();
@@ -189,7 +189,7 @@ function switchDashboardSection(sectionId, menuElement) {
   } else if (sectionId === "db-admin-audit") {
     refreshAdminAuditLogs();
   }
-  
+
   lucide.createIcons();
   window.scrollTo(0, 0);
 }
@@ -197,7 +197,7 @@ function switchDashboardSection(sectionId, menuElement) {
 function togglePasswordVisibility(inputId, toggleBtn) {
   const input = document.getElementById(inputId);
   if (!input) return;
-  
+
   if (input.type === "password") {
     input.type = "text";
     toggleBtn.innerHTML = `<i data-lucide="eye-off" style="width: 18px; height: 18px;"></i>`;
@@ -213,16 +213,16 @@ function togglePasswordVisibility(inputId, toggleBtn) {
 // -------------------------------------------------------------
 async function handleLoginSubmit(event) {
   event.preventDefault();
-  
+
   const userIdInput = document.getElementById("login-userid").value.trim();
   const passwordInput = document.getElementById("login-password").value;
   const captchaInput = document.getElementById("login-captcha-input").value.trim().toUpperCase();
-  
+
   const errorAlert = document.getElementById("login-error-alert");
   const errorText = document.getElementById("login-error-text");
-  
+
   errorAlert.style.display = "none";
-  
+
   // 1. Validate Captcha
   if (captchaInput !== currentCaptchaText) {
     errorText.innerText = "Invalid Captcha. Please enter the correct code.";
@@ -231,15 +231,15 @@ async function handleLoginSubmit(event) {
     document.getElementById("login-captcha-input").value = "";
     return;
   }
-  
+
   // 2. API Login call
   try {
-    const res = await fetch("http://127.0.0.1:5000/api/login", {
+    const res = await fetch("https://e-ta-da-seva-portal.onrender.com/api/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userid: userIdInput, password: passwordInput })
     });
-    
+
     if (!res.ok) {
       const text = await res.text();
       let errMessage = "Incorrect credentials";
@@ -251,17 +251,17 @@ async function handleLoginSubmit(event) {
       }
       throw new Error(errMessage);
     }
-    
+
     const data = await res.json();
     token = data.token;
     currentUser = data.user;
-    
+
     localStorage.setItem("token", token);
     localStorage.setItem("user", JSON.stringify(currentUser));
-    
+
     setupRoleViews();
     switchView("dashboard-view");
-    
+
     if (currentUser.role === "Employee") {
       switchDashboardSection("db-overview", document.querySelector(".sidebar-menu li.employee-only"));
     } else {
@@ -282,7 +282,7 @@ async function demoLogin(userid) {
   errorAlert.style.display = "none";
 
   try {
-    const res = await fetch("http://127.0.0.1:5000/api/login", {
+    const res = await fetch("https://e-ta-da-seva-portal.onrender.com/api/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userid: userid, password: "password123" })
@@ -326,7 +326,7 @@ async function demoLogin(userid) {
 // -------------------------------------------------------------
 async function handleRegisterSubmit(event) {
   event.preventDefault();
-  
+
   const fullname = document.getElementById("reg-fullname").value.trim();
   const userid = document.getElementById("reg-userid").value.trim();
   const rank = document.getElementById("reg-rank").value.trim();
@@ -336,35 +336,35 @@ async function handleRegisterSubmit(event) {
   const password = document.getElementById("reg-password").value;
   const confirmPassword = document.getElementById("reg-confirmpassword").value;
   const role = document.getElementById("reg-role").value;
-  
+
   const errorAlert = document.getElementById("register-error-alert");
   const errorText = document.getElementById("register-error-text");
-  
+
   errorAlert.style.display = "none";
-  
+
   if (password !== confirmPassword) {
     errorText.innerText = "Passwords do not match!";
     errorAlert.style.display = "flex";
     return;
   }
-  
+
   if (userid.length < 5) {
     errorText.innerText = "User ID / PNO must be at least 5 digits.";
     errorAlert.style.display = "flex";
     return;
   }
-  
+
   try {
-    const res = await fetch("http://127.0.0.1:5000/api/register", {
+    const res = await fetch("https://e-ta-da-seva-portal.onrender.com/api/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userid, password, fullname, rank, posting, mobile, email, role })
     });
-    
+
     if (!res.ok) {
-      const text = await res.text(); let errMsg = "Registration failed"; try { const errObj = JSON.parse(text); errMsg = errObj.message || errMsg; } catch(e) { errMsg = text || errMsg; } throw new Error(errMsg);
+      const text = await res.text(); let errMsg = "Registration failed"; try { const errObj = JSON.parse(text); errMsg = errObj.message || errMsg; } catch (e) { errMsg = text || errMsg; } throw new Error(errMsg);
     }
-    
+
     alert(`Registration Successful!\nYou can now log in with User ID (PNO): ${userid}`);
     switchView("login-view");
   } catch (err) {
@@ -378,14 +378,14 @@ async function handleRegisterSubmit(event) {
 // -------------------------------------------------------------
 function handleForgotStep1(event) {
   event.preventDefault();
-  
+
   const userid = document.getElementById("forgot-userid").value.trim();
   const email = document.getElementById("forgot-email").value.trim();
   const alertBox = document.getElementById("forgot-alert");
   const alertText = document.getElementById("forgot-alert-text");
-  
+
   alertBox.style.display = "none";
-  
+
   if (userid && email) {
     document.getElementById("forgot-form-step1").style.display = "none";
     document.getElementById("forgot-form-step2").style.display = "block";
@@ -397,19 +397,19 @@ function handleForgotStep1(event) {
 
 function handleForgotStep2(event) {
   event.preventDefault();
-  
+
   const otp = document.getElementById("forgot-otp").value.trim();
   const alertBox = document.getElementById("forgot-alert");
   const alertText = document.getElementById("forgot-alert-text");
-  
+
   alertBox.style.display = "none";
-  
+
   if (otp !== "789012") {
     alertText.innerText = "Invalid verification code! Enter the demo OTP: 789012.";
     alertBox.style.display = "flex";
     return;
   }
-  
+
   alert("Password reset simulated successfully! Please log in.");
   switchView("login-view");
 }
@@ -487,7 +487,7 @@ async function handleRealFileChange(event) {
   formData.append("file", file);
 
   try {
-    const res = await fetch("http://127.0.0.1:5000/api/upload", {
+    const res = await fetch("https://e-ta-da-seva-portal.onrender.com/api/upload", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${token}`
@@ -498,7 +498,7 @@ async function handleRealFileChange(event) {
     if (!res.ok) {
       const text = await res.text();
       let errMsg = "Failed to upload file";
-      try { const errObj = JSON.parse(text); errMsg = errObj.message || errMsg; } catch(e) { errMsg = text || errMsg; }
+      try { const errObj = JSON.parse(text); errMsg = errObj.message || errMsg; } catch (e) { errMsg = text || errMsg; }
       throw new Error(errMsg);
     }
 
@@ -521,24 +521,24 @@ async function handleRealFileChange(event) {
 // -------------------------------------------------------------
 async function refreshOverviewDashboard() {
   if (!currentUser || !token) return;
-  
+
   // Welcome Msg
   document.getElementById("db-welcome-msg").innerText = `Welcome Back, ${currentUser.fullname}!`;
-  
+
   try {
-    const res = await fetch(`http://127.0.0.1:5000/api/claim/user/${currentUser.userid}`, {
+    const res = await fetch(`https://e-ta-da-seva-portal.onrender.com/api/claim/user/${currentUser.userid}`, {
       headers: { "Authorization": `Bearer ${token}` }
     });
-    
+
     if (!res.ok) throw new Error("Could not fetch claims history");
-    
+
     const claims = await res.json();
-    
+
     let totalSum = 0;
     let pendingSum = 0;
     let approvedSum = 0;
     let disbursedSum = 0;
-    
+
     claims.forEach(c => {
       totalSum += c.totalClaim;
       if (c.status.startsWith("pending")) {
@@ -551,15 +551,15 @@ async function refreshOverviewDashboard() {
         disbursedSum += c.totalClaim;
       }
     });
-    
+
     document.getElementById("stat-total-claims").innerText = "₹" + totalSum.toLocaleString("en-IN");
     document.getElementById("stat-pending-claims").innerText = "₹" + pendingSum.toLocaleString("en-IN");
     document.getElementById("stat-approved-claims").innerText = "₹" + approvedSum.toLocaleString("en-IN");
     document.getElementById("stat-disbursed-claims").innerText = "₹" + disbursedSum.toLocaleString("en-IN");
-    
+
     const tbody = document.getElementById("overview-claims-tbody");
     tbody.innerHTML = "";
-    
+
     if (claims.length === 0) {
       tbody.innerHTML = `
         <tr>
@@ -570,7 +570,7 @@ async function refreshOverviewDashboard() {
       `;
       return;
     }
-    
+
     const sortedClaims = [...claims].reverse().slice(0, 5);
     sortedClaims.forEach(c => {
       const tr = document.createElement("tr");
@@ -595,11 +595,11 @@ async function refreshOverviewDashboard() {
       `;
       tbody.appendChild(tr);
     });
-    
+
   } catch (err) {
     console.error(err);
   }
-  
+
   lucide.createIcons();
 }
 
@@ -640,10 +640,10 @@ function calculateClaimSums() {
   const days = parseFloat(document.getElementById("claim-da-days").value) || 0;
   const daRate = parseFloat(document.getElementById("claim-da-rate").value) || 0;
   const other = parseFloat(document.getElementById("claim-other-exp").value) || 0;
-  
+
   const daTotal = days * daRate;
   const grandTotal = fare + daTotal + other;
-  
+
   document.getElementById("calc-fare-val").innerText = "₹" + fare.toLocaleString("en-IN");
   document.getElementById("calc-da-val").innerText = "₹" + daTotal.toLocaleString("en-IN");
   document.getElementById("calc-other-val").innerText = "₹" + other.toLocaleString("en-IN");
@@ -660,9 +660,9 @@ async function handleClaimSubmit(event) {
   if (claimUploadInProgress || !isClaimSubmitButton) {
     return;
   }
-  
+
   if (!currentUser || !token) return;
-  
+
   const journeyDateVal = document.getElementById("claim-journey-date").value;
   const dep = document.getElementById("claim-dep-station").value.trim();
   const arr = document.getElementById("claim-arr-station").value.trim();
@@ -674,11 +674,11 @@ async function handleClaimSubmit(event) {
   const daDays = parseInt(document.getElementById("claim-da-days").value) || 0;
   const daRate = parseFloat(document.getElementById("claim-da-rate").value) || 0;
   const otherExp = parseFloat(document.getElementById("claim-other-exp").value) || 0;
-  
+
   const totalClaim = ticketFare + (daDays * daRate) + otherExp;
 
   const formattedJourneyDate = formatDateString(journeyDateVal);
-  
+
   const claimPayload = {
     journeyDate: formattedJourneyDate,
     depStation: dep,
@@ -694,9 +694,9 @@ async function handleClaimSubmit(event) {
     totalClaim,
     attachment: uploadedFilePath
   };
-  
+
   try {
-    const res = await fetch("http://127.0.0.1:5000/api/claim/submit", {
+    const res = await fetch("https://e-ta-da-seva-portal.onrender.com/api/claim/submit", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -704,16 +704,16 @@ async function handleClaimSubmit(event) {
       },
       body: JSON.stringify(claimPayload)
     });
-    
+
     if (!res.ok) {
-      const text = await res.text(); let errMsg = "Failed to submit claim"; try { const errObj = JSON.parse(text); errMsg = errObj.message || errMsg; } catch(e) { errMsg = text || errMsg; } throw new Error(errMsg);
+      const text = await res.text(); let errMsg = "Failed to submit claim"; try { const errObj = JSON.parse(text); errMsg = errObj.message || errMsg; } catch (e) { errMsg = text || errMsg; } throw new Error(errMsg);
     }
-    
+
     const data = await res.json();
     alert(`Claim Submitted Successfully!\nTracking ID: ${data.claimId}`);
-    
+
     resetClaimForm();
-    
+
     // Redirect to track page
     const trackMenuLi = document.querySelector(".sidebar-menu li.employee-only:nth-child(3)");
     switchDashboardSection("db-track-claims", trackMenuLi);
@@ -741,18 +741,18 @@ function formatDateString(dateStr) {
 // -------------------------------------------------------------
 async function refreshTrackingTable() {
   if (!currentUser || !token) return;
-  
+
   try {
-    const res = await fetch(`http://127.0.0.1:5000/api/claim/user/${currentUser.userid}`, {
+    const res = await fetch(`https://e-ta-da-seva-portal.onrender.com/api/claim/user/${currentUser.userid}`, {
       headers: { "Authorization": `Bearer ${token}` }
     });
-    
+
     if (!res.ok) throw new Error("Could not fetch claims");
     const claims = await res.json();
-    
+
     const tbody = document.getElementById("tracking-claims-tbody");
     tbody.innerHTML = "";
-    
+
     if (claims.length === 0) {
       tbody.innerHTML = `
         <tr>
@@ -764,7 +764,7 @@ async function refreshTrackingTable() {
       document.getElementById("stepper-details-panel").style.display = "none";
       return;
     }
-    
+
     const sortedClaims = [...claims].reverse();
     sortedClaims.forEach(c => {
       const tr = document.createElement("tr");
@@ -789,75 +789,75 @@ async function refreshTrackingTable() {
   } catch (err) {
     console.error(err);
   }
-  
+
   lucide.createIcons();
 }
 
 async function showClaimTracking(claimId) {
   if (!currentUser || !token) return;
-  
+
   try {
-    const res = await fetch(`http://127.0.0.1:5000/api/claim/user/${currentUser.userid}`, {
+    const res = await fetch(`https://e-ta-da-seva-portal.onrender.com/api/claim/user/${currentUser.userid}`, {
       headers: { "Authorization": `Bearer ${token}` }
     });
     if (!res.ok) throw new Error();
     const claims = await res.json();
     const claim = claims.find(c => c.id === claimId);
-    
+
     if (!claim) return;
-    
+
     const stepperPanel = document.getElementById("stepper-details-panel");
     stepperPanel.style.display = "block";
-    
+
     document.getElementById("track-claim-id").innerText = claim.id;
     document.getElementById("track-purpose").innerText = claim.purpose;
     document.getElementById("track-total-val").innerText = "₹" + claim.totalClaim.toLocaleString("en-IN");
-    
+
     const statusTxt = document.getElementById("track-status-text");
     statusTxt.innerText = mapStatusLabel(claim.status).toUpperCase();
-    
+
     // Set attachment link
     const attachmentBox = document.getElementById("track-attachment-box");
     const attachmentLink = document.getElementById("track-attachment-link");
-    
+
     if (claim.attachment) {
       attachmentBox.style.display = "block";
       attachmentLink.href = claim.attachment;
     } else {
       attachmentBox.style.display = "none";
     }
-    
+
     // Nodes
     const node1 = document.getElementById("step-node-1");
     const node2 = document.getElementById("step-node-2");
     const node3 = document.getElementById("step-node-3");
     const node4 = document.getElementById("step-node-4");
-    
+
     const icon2 = document.getElementById("step-icon-2");
     const icon3 = document.getElementById("step-icon-3");
     const icon4 = document.getElementById("step-icon-4");
-    
+
     const date1 = document.getElementById("step-date-1");
     const date2 = document.getElementById("step-date-2");
     const date3 = document.getElementById("step-date-3");
     const date4 = document.getElementById("step-date-4");
-    
+
     const progressFill = document.getElementById("track-step-progress-fill");
-    
+
     const nodes = [node1, node2, node3, node4];
     nodes.forEach(n => n.className = "step-node");
-    
+
     date1.innerText = claim.timeline.step1 || "";
     date2.innerText = claim.timeline.step2 || "Pending";
     date3.innerText = claim.timeline.step3 || "Pending";
     date4.innerText = claim.timeline.step4 || "Pending";
-    
+
     icon2.innerHTML = "2";
     icon3.innerHTML = "3";
     icon4.innerHTML = "4";
-    
+
     node1.classList.add("completed");
-    
+
     // Update Stepper steps and progress line based on SQL workflow
     if (claim.status === "pending_so") {
       node2.classList.add("active");
@@ -891,7 +891,7 @@ async function showClaimTracking(claimId) {
       progressFill.style.width = "33.3%";
       statusTxt.style.color = "var(--danger-color)";
     }
-    
+
     lucide.createIcons();
     stepperPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   } catch (err) {
@@ -904,16 +904,16 @@ async function showClaimTracking(claimId) {
 // -------------------------------------------------------------
 async function renderMISCharts() {
   if (!currentUser || !token) return;
-  
+
   try {
-    const res = await fetch(`http://127.0.0.1:5000/api/claim/user/${currentUser.userid}`, {
+    const res = await fetch(`https://e-ta-da-seva-portal.onrender.com/api/claim/user/${currentUser.userid}`, {
       headers: { "Authorization": `Bearer ${token}` }
     });
     if (!res.ok) return;
     const claims = await res.json();
-    
+
     const monthlySums = { "Apr": 0, "May": 0, "Jun": 0, "Jul": 0, "Aug": 0, "Sep": 0 };
-    
+
     claims.forEach(c => {
       const parts = c.submitDate.split(" ");
       if (parts.length >= 2) {
@@ -926,17 +926,17 @@ async function renderMISCharts() {
         }
       }
     });
-    
+
     const values = Object.values(monthlySums);
     const maxVal = Math.max(...values, 5000);
-    
+
     const chartBarsContainer = document.getElementById("mis-chart-bars");
     chartBarsContainer.innerHTML = "";
-    
+
     Object.keys(monthlySums).forEach(month => {
       const sum = monthlySums[month];
       const percentageHeight = (sum / maxVal) * 220;
-      
+
       const wrapper = document.createElement("div");
       wrapper.className = "chart-bar-wrapper";
       wrapper.innerHTML = `
@@ -957,14 +957,14 @@ async function renderMISCharts() {
 // -------------------------------------------------------------
 async function loadProfileDetails() {
   if (!currentUser || !token) return;
-  
+
   try {
-    const res = await fetch("http://127.0.0.1:5000/api/profile", {
+    const res = await fetch("https://e-ta-da-seva-portal.onrender.com/api/profile", {
       headers: { "Authorization": `Bearer ${token}` }
     });
     if (!res.ok) throw new Error();
     const profile = await res.json();
-    
+
     document.getElementById("prof-name").value = profile.fullname;
     document.getElementById("prof-userid").value = profile.userid;
     document.getElementById("prof-rank").value = profile.rank;
@@ -973,7 +973,7 @@ async function loadProfileDetails() {
     document.getElementById("prof-bank-acct").value = profile.bankAcct || "";
     document.getElementById("prof-bank-ifsc").value = profile.bankIfsc || "";
     document.getElementById("prof-mobile").value = profile.mobile;
-    
+
     document.getElementById("profile-success-alert").style.display = "none";
   } catch (err) {
     console.error("Failed to load profile details", err);
@@ -982,9 +982,9 @@ async function loadProfileDetails() {
 
 async function handleProfileUpdate(event) {
   event.preventDefault();
-  
+
   if (!currentUser || !token) return;
-  
+
   const fullname = document.getElementById("prof-name").value.trim();
   const rank = document.getElementById("prof-rank").value.trim();
   const posting = document.getElementById("prof-posting").value.trim();
@@ -992,9 +992,9 @@ async function handleProfileUpdate(event) {
   const bankAcct = document.getElementById("prof-bank-acct").value.trim();
   const bankIfsc = document.getElementById("prof-bank-ifsc").value.trim().toUpperCase();
   const mobile = document.getElementById("prof-mobile").value.trim();
-  
+
   try {
-    const res = await fetch("http://127.0.0.1:5000/api/profile", {
+    const res = await fetch("https://e-ta-da-seva-portal.onrender.com/api/profile", {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -1002,11 +1002,11 @@ async function handleProfileUpdate(event) {
       },
       body: JSON.stringify({ fullname, rank, posting, bankName, bankAcct, bankIfsc, mobile })
     });
-    
+
     if (!res.ok) {
-      const text = await res.text(); let errMsg = "Failed to update profile"; try { const errObj = JSON.parse(text); errMsg = errObj.message || errMsg; } catch(e) { errMsg = text || errMsg; } throw new Error(errMsg);
+      const text = await res.text(); let errMsg = "Failed to update profile"; try { const errObj = JSON.parse(text); errMsg = errObj.message || errMsg; } catch (e) { errMsg = text || errMsg; } throw new Error(errMsg);
     }
-    
+
     // Update local currentUser representation
     currentUser.fullname = fullname;
     currentUser.rank = rank;
@@ -1016,9 +1016,9 @@ async function handleProfileUpdate(event) {
     currentUser.bankIfsc = bankIfsc;
     currentUser.mobile = mobile;
     localStorage.setItem("user", JSON.stringify(currentUser));
-    
+
     setupRoleViews();
-    
+
     const alertBox = document.getElementById("profile-success-alert");
     alertBox.style.display = "flex";
     setTimeout(() => {
@@ -1075,38 +1075,38 @@ async function refreshAdminClaimsTable() {
   if (!currentUser || !token) return;
   applyReviewWorkflowText();
   const workflowText = getReviewWorkflowText();
-  
+
   // Gather Filters
   const posting = document.getElementById("admin-filter-posting").value.trim();
   const rank = document.getElementById("admin-filter-rank").value;
   const date = document.getElementById("admin-filter-date").value;
-  
+
   // Format filter date to match stored DB format
   let formattedDate = "";
   if (date) {
     formattedDate = formatDateString(date);
   }
-  
+
   // Build query
-  let url = `http://127.0.0.1:5000/api/claim/pending?posting=${encodeURIComponent(posting)}&rank=${encodeURIComponent(rank)}&date=${encodeURIComponent(formattedDate)}`;
-  
+  let url = `https://e-ta-da-seva-portal.onrender.com/api/claim/pending?posting=${encodeURIComponent(posting)}&rank=${encodeURIComponent(rank)}&date=${encodeURIComponent(formattedDate)}`;
+
   try {
     const res = await fetch(url, {
       headers: { "Authorization": `Bearer ${token}` }
     });
-    
+
     if (!res.ok) throw new Error("Could not load review claims");
-    
+
     const claims = await res.json();
     currentReviewClaims = claims;
-    
+
     // Update Admin Stats count
     document.getElementById("admin-stat-pending").innerText = claims.length;
-    
+
     // Populate Admin Table
     const tbody = document.getElementById("admin-claims-tbody");
     tbody.innerHTML = "";
-    
+
     if (claims.length === 0) {
       tbody.innerHTML = `
         <tr>
@@ -1117,7 +1117,7 @@ async function refreshAdminClaimsTable() {
       `;
       return;
     }
-    
+
     claims.forEach(c => {
       const tr = document.createElement("tr");
       tr.innerHTML = `
@@ -1135,27 +1135,27 @@ async function refreshAdminClaimsTable() {
       `;
       tbody.appendChild(tr);
     });
-    
+
     // Also load audit log overview stats
     loadAdminStatsSums();
   } catch (err) {
     console.error(err);
   }
-  
+
   lucide.createIcons();
 }
 
 async function loadAdminStatsSums() {
   try {
-    const res = await fetch("http://127.0.0.1:5000/api/audit-logs", {
+    const res = await fetch("https://e-ta-da-seva-portal.onrender.com/api/audit-logs", {
       headers: { "Authorization": `Bearer ${token}` }
     });
     if (!res.ok) return;
     const logs = await res.json();
-    
+
     const totalAudits = logs.length;
     document.getElementById("admin-stat-total").innerText = totalAudits;
-    
+
     // Disbursed amount estimation from logs (search 'disbursed funds for claim')
     let totalDisbursed = 0;
     logs.forEach(l => {
@@ -1168,7 +1168,7 @@ async function loadAdminStatsSums() {
         // Let's fetch historical statistics or show a nice summary!
       }
     });
-    
+
     // Let's actually count disbursements from audit logs or just show the count. Let's make it show a formatted number of audit actions.
   } catch (err) {
     console.error(err);
@@ -1188,31 +1188,31 @@ function resetAdminFilters() {
 function openReviewModal(claimId) {
   selectedReviewClaim = currentReviewClaims.find(c => c.id === claimId);
   if (!selectedReviewClaim) return;
-  
+
   document.getElementById("review-claim-id").innerText = selectedReviewClaim.id;
   document.getElementById("review-officer-name").innerText = selectedReviewClaim.officerName;
   document.getElementById("review-officer-pno").innerText = selectedReviewClaim.userid;
   document.getElementById("review-officer-rank").innerText = selectedReviewClaim.officerRank;
   document.getElementById("review-officer-posting").innerText = selectedReviewClaim.officerPosting;
-  
+
   document.getElementById("review-journey-date").innerText = selectedReviewClaim.journeyDate;
   document.getElementById("review-route").innerText = `${selectedReviewClaim.depStation} → ${selectedReviewClaim.arrStation}`;
   document.getElementById("review-travel-mode").innerText = selectedReviewClaim.travelMode;
   document.getElementById("review-ticket-no").innerText = selectedReviewClaim.ticketNo;
   document.getElementById("review-distance").innerText = `${selectedReviewClaim.distance} km`;
   document.getElementById("review-fare").innerText = selectedReviewClaim.ticketFare.toLocaleString("en-IN");
-  
+
   document.getElementById("review-da-days").innerText = selectedReviewClaim.daDays;
   document.getElementById("review-da-rate").innerText = selectedReviewClaim.daRate.toLocaleString("en-IN");
   document.getElementById("review-da-total").innerText = (selectedReviewClaim.daDays * selectedReviewClaim.daRate).toLocaleString("en-IN");
   document.getElementById("review-other").innerText = selectedReviewClaim.otherExp.toLocaleString("en-IN");
   document.getElementById("review-grand-total").innerText = selectedReviewClaim.totalClaim.toLocaleString("en-IN");
   document.getElementById("review-purpose").innerText = selectedReviewClaim.purpose;
-  
+
   // Receipts Link
   const attachmentBox = document.getElementById("review-attachment-box");
   attachmentBox.innerHTML = "";
-  
+
   if (selectedReviewClaim.attachment) {
     attachmentBox.style.display = "flex";
     attachmentBox.innerHTML = `
@@ -1228,13 +1228,13 @@ function openReviewModal(claimId) {
       <span style="color:var(--text-gray);">No supporting documents attached to this claim.</span>
     `;
   }
-  
+
   // Set action button labels based on role
   const btnApprove = document.getElementById("review-btn-approve");
   btnApprove.innerText = getReviewWorkflowText().approveButton;
-  
+
   document.getElementById("review-remarks").value = "";
-  
+
   // Display Modal Overlay
   document.getElementById("review-modal").style.display = "flex";
   lucide.createIcons();
@@ -1247,17 +1247,17 @@ function closeReviewModal() {
 
 async function submitReviewAction(action) {
   if (!selectedReviewClaim || !token) return;
-  
+
   const remarks = document.getElementById("review-remarks").value.trim();
-  
+
   // Rejection requires remarks!
   if (action === "reject" && !remarks) {
     alert("Compliance Warning:\nYou must provide audit remarks explaining the reason for rejecting this claim request.");
     return;
   }
-  
+
   try {
-    const res = await fetch(`http://127.0.0.1:5000/api/claim/${selectedReviewClaim.id}/approve`, {
+    const res = await fetch(`https://e-ta-da-seva-portal.onrender.com/api/claim/${selectedReviewClaim.id}/approve`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -1265,11 +1265,11 @@ async function submitReviewAction(action) {
       },
       body: JSON.stringify({ action, remarks })
     });
-    
+
     if (!res.ok) {
-      const text = await res.text(); let errMsg = "Failed to process review"; try { const errObj = JSON.parse(text); errMsg = errObj.message || errMsg; } catch(e) { errMsg = text || errMsg; } throw new Error(errMsg);
+      const text = await res.text(); let errMsg = "Failed to process review"; try { const errObj = JSON.parse(text); errMsg = errObj.message || errMsg; } catch (e) { errMsg = text || errMsg; } throw new Error(errMsg);
     }
-    
+
     const actionText = action === 'approve' ? getReviewWorkflowText().approveSuccess : 'rejected';
     alert(`Claim ${selectedReviewClaim.id} has been successfully ${actionText}.`);
     closeReviewModal();
@@ -1284,19 +1284,19 @@ async function submitReviewAction(action) {
 // -------------------------------------------------------------
 async function refreshAdminAuditLogs() {
   if (!currentUser || !token) return;
-  
+
   try {
-    const res = await fetch("http://127.0.0.1:5000/api/audit-logs", {
+    const res = await fetch("https://e-ta-da-seva-portal.onrender.com/api/audit-logs", {
       headers: { "Authorization": `Bearer ${token}` }
     });
-    
+
     if (!res.ok) throw new Error("Could not load audit logs");
-    
+
     const logs = await res.json();
-    
+
     const tbody = document.getElementById("admin-audit-tbody");
     tbody.innerHTML = "";
-    
+
     if (logs.length === 0) {
       tbody.innerHTML = `
         <tr>
@@ -1307,7 +1307,7 @@ async function refreshAdminAuditLogs() {
       `;
       return;
     }
-    
+
     logs.forEach(l => {
       const tr = document.createElement("tr");
       tr.innerHTML = `
