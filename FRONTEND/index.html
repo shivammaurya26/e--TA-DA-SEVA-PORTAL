@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Uttar Pradesh Police E-TA/DA Seva Portal</title>
+  <!-- Link Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+  <!-- Load Lucide Icons from CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+  <!-- ==========================================
+       HEADER SECTION (Matches original image)
+       ========================================== -->
+  <header class="portal-header">
+    <div class="header-left">
+      <img src="assets/up_police_logo.png" alt="UP Police Logo" class="header-logo-small">
+      <div class="header-title-container">
+        <h1 class="header-dept-title">Uttar Pradesh Police</h1>
+        <span class="header-dept-slogan">सुरक्षा आपकी, संकल्प हमारा</span>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="helpline-icon-wrapper">
+        <i data-lucide="phone-call" style="width: 24px; height: 24px;"></i>
+      </div>
+      <div class="helpline-info">
+        <span class="helpline-label">Helpline No.</span>
+        <span class="helpline-number">1800-102-1122</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==========================================
+       VIEW 1: AUTHENTICATION (LOGIN, REGISTER, RESET)
+       ========================================== -->
+  <!-- 1a. Login View -->
+  <div id="login-view" class="app-view active">
+    <main class="hero-section">
+      <div class="hero-overlay"></div>
+      <div class="hero-container">
+        <!-- Hero Left Info -->
+        <div class="hero-branding">
+          <img src="assets/up_police_logo.png" alt="Uttar Pradesh Police emblem badge" class="hero-emblem">
+          <h2 class="hero-title">E - TA / DA SEVA PORTAL</h2>
+          <div class="hero-divider">
+            <span class="hero-divider-star">★</span>
+          </div>
+          <p class="hero-slogan">Digitalize • Simplify • Serve</p>
+          <p class="hero-description">
+            A centralized platform for managing Travel Allowance (TA) and Daily Allowance (DA) claims for police personnel.
+          </p>
+        </div>
+
+        <!-- Hero Right Login Card -->
+        <div class="login-card">
+          <div class="login-header-group">
+            <div class="login-card-title-row">
+              <i data-lucide="shield-check" style="width: 24px; height: 24px;"></i>
+              <span>Login to your Account</span>
+            </div>
+            <p class="login-card-subtitle">Please enter your credentials to continue</p>
+          </div>
+
+          <!-- Alert error box -->
+          <div id="login-error-alert" class="alert-box">
+            <i data-lucide="alert-circle" style="width: 16px; height: 16px; flex-shrink:0;"></i>
+            <span id="login-error-text">Incorrect credentials or Captcha.</span>
+          </div>
+
+          <form id="login-form" onsubmit="handleLoginSubmit(event)">
+            <!-- User ID Input -->
+            <div class="form-group">
+              <div class="form-input-wrapper">
+                <i data-lucide="user" class="input-icon-left" style="width: 18px; height: 18px;"></i>
+                <input type="text" id="login-userid" placeholder="Enter User ID" class="login-input" required>
+              </div>
+            </div>
+
+            <!-- Password Input -->
+            <div class="form-group">
+              <div class="form-input-wrapper">
+                <i data-lucide="lock" class="input-icon-left" style="width: 18px; height: 18px;"></i>
+                <input type="password" id="login-password" placeholder="Enter Password" class="login-input" required>
+                <button type="button" class="password-toggle" onclick="togglePasswordVisibility('login-password', this)">
+                  <i data-lucide="eye" style="width: 18px; height: 18px;"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Captcha Section -->
+            <div class="captcha-container">
+              <div class="captcha-box-wrapper">
+                <div class="captcha-bg-noise"></div>
+                <canvas id="captcha-canvas" class="captcha-lines" width="220" height="50"></canvas>
+                <span id="captcha-text-display" class="captcha-text">7PX69</span>
+              </div>
+              <button type="button" class="captcha-refresh-btn" onclick="generateCaptcha()" title="Refresh Captcha">
+                <i data-lucide="refresh-cw" style="width: 18px; height: 18px;"></i>
+              </button>
+            </div>
+
+            <!-- Captcha Input -->
+            <div class="form-group">
+              <div class="form-input-wrapper">
+                <i data-lucide="check-square" class="input-icon-left" style="width: 18px; height: 18px;"></i>
+                <input type="text" id="login-captcha-input" placeholder="Enter Captcha" class="login-input" required>
+              </div>
+            </div>
+
+            <!-- Login Submit button -->
+            <button type="submit" class="login-btn">
+              <span>Login</span>
+            </button>
+          </form>
+
+          <a href="#" class="forgot-password-link" onclick="switchView('forgot-password-view')">Forgot Password?</a>
+
+          <div class="or-divider">
+            <span class="or-badge">OR</span>
+          </div>
+
+          <p class="register-prompt">New User? <a href="#" onclick="switchView('register-view')">Register Here</a></p>
+
+          <!-- Demo credentials hint for testing -->
+          <div class="demo-credentials-badge">
+            <strong>Quick Demo Login (Password: <code>password123</code>):</strong>
+            <div style="display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap;">
+              <button type="button" class="btn-secondary" style="padding: 6px 12px; font-size: 0.75rem; height: auto; flex: 1; min-width: 100px;" onclick="demoLogin('12345678')">
+                👮 Employee
+              </button>
+              <button type="button" class="btn-secondary" style="padding: 6px 12px; font-size: 0.75rem; height: auto; flex: 1; min-width: 100px;" onclick="demoLogin('22222222')">
+                🎖️ Station Officer
+              </button>
+              <button type="button" class="btn-secondary" style="padding: 6px 12px; font-size: 0.75rem; height: auto; flex: 1; min-width: 100px;" onclick="demoLogin('33333333')">
+                📋 Admin
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Features list row (Matches bottom panel of image) -->
+    <section class="features-row">
+      <div class="feature-col" onclick="alert('Feature details: Digitally submit TA/DA claims directly from your dashboard.')">
+        <div class="feature-icon-wrapper">
+          <i data-lucide="file-search" style="width: 26px; height: 26px;"></i>
+        </div>
+        <h3 class="feature-title">Online TA/DA Claim Submission</h3>
+      </div>
+      <div class="feature-col" onclick="alert('Feature details: View approval stage timeline from desk clerks to audit and treasury.')">
+        <div class="feature-icon-wrapper">
+          <i data-lucide="gauge" style="width: 26px; height: 26px;"></i>
+        </div>
+        <h3 class="feature-title">Real-time Claim Tracking</h3>
+      </div>
+      <div class="feature-col" onclick="alert('Feature details: Direct bank transfers and transparent calculation logs.')">
+        <div class="feature-icon-wrapper">
+          <i data-lucide="indian-rupee" style="width: 26px; height: 26px;"></i>
+        </div>
+        <h3 class="feature-title">Transparent Reimbursement</h3>
+      </div>
+      <div class="feature-col" onclick="alert('Feature details: Integrated analytics showing district-level budget allocations and logs.')">
+        <div class="feature-icon-wrapper">
+          <i data-lucide="bar-chart-3" style="width: 26px; height: 26px;"></i>
+        </div>
+        <h3 class="feature-title">MIS & Reports Dashboard</h3>
+      </div>
+      <div class="feature-col" onclick="alert('Feature details: Secure credential protection and role-based permissions.')">
+        <div class="feature-icon-wrapper">
+          <i data-lucide="shield-alert" style="width: 26px; height: 26px;"></i>
+        </div>
+        <h3 class="feature-title">Secure & Role Based Access</h3>
+      </div>
+    </section>
+  </div>
+
+  <!-- 1b. Registration View -->
+  <div id="register-view" class="app-view">
+    <div class="auth-panel-container">
+      <div class="auth-form-card">
+        <div class="auth-card-header">
+          <i data-lucide="user-plus" style="width: 28px; height: 28px; color: var(--police-light-blue);"></i>
+          <h2>Officer Registration</h2>
+        </div>
+
+        <div id="register-error-alert" class="alert-box">
+          <i data-lucide="alert-circle" style="width: 16px; height: 16px; flex-shrink:0;"></i>
+          <span id="register-error-text"></span>
+        </div>
+
+        <form id="register-form" onsubmit="handleRegisterSubmit(event)">
+          <div class="form-grid-2">
+            <!-- Full Name -->
+            <div class="form-group">
+              <label for="reg-fullname">Full Name (with Prefix/Rank)</label>
+              <div class="form-input-wrapper">
+                <i data-lucide="user-check" class="input-icon-left" style="width: 18px; height: 18px;"></i>
+                <input type="text" id="reg-fullname" placeholder="e.g. Inspector Rajesh Singh" class="login-input" required>
+              </div>
+            </div>
+            <!-- PNO / User ID -->
+            <div class="form-group">
+              <label for="reg-userid">Police PNO Number (8-9 digits)</label>
+              <div class="form-input-wrapper">
+                <i data-lucide="hash" class="input-icon-left" style="width: 18px; height: 18px;"></i>
+                <input type="text" id="reg-userid" placeholder="e.g. 12345678" class="login-input" required>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <!-- Rank Designation -->
+            <div class="form-group">
+              <label for="reg-rank">Designation / Rank</label>
+              <div class="form-input-wrapper">
+                <i data-lucide="award" class="input-icon-left" style="width: 18px; height: 18px;"></i>
+                <input type="text" id="reg-rank" placeholder="e.g. Circle Officer (CO)" class="login-input" required>
+              </div>
+            </div>
+            <!-- District Posting -->
+            <div class="form-group">
+              <label for="reg-posting">Posting District / Unit</label>
+              <div class="form-input-wrapper">
+                <i data-lucide="map-pin" class="input-icon-left" style="width: 18px; height: 18px;"></i>
+                <input type="text" id="reg-posting" placeholder="e.g. Lucknow HQ" class="login-input" required>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <!-- Mobile Number -->
+            <div class="form-group">
+              <label for="reg-mobile">Mobile Number</label>
+              <div class="form-input-wrapper">
+                <i data-lucide="smartphone" class="input-icon-left" style="width: 18px; height: 18px;"></i>
+                <input type="tel" id="reg-mobile" placeholder="10-digit number" class="login-input" required>
+              </div>
+            </div>
+            <!-- Email -->
+            <div class="form-group">
+              <label for="reg-email">Email Address</label>
+              <div class="form-input-wrapper">
+                <i data-lucide="mail" class="input-icon-left" style="width: 18px; height: 18px;"></i>
+                <input type="email" id="reg-email" placeholder="name@uppolice.gov.in" class="login-input" required>
+              </div>
+            </div>
+          </div>
+
+          <!-- Role Selection Dropdown -->
+          <div class="form-group" style="margin-bottom: 18px;">
+            <label for="reg-role">Portal Role / Designation</label>
+            <div class="form-input-wrapper">
+              <i data-lucide="shield" class="input-icon-left" style="width: 18px; height: 18px;"></i>
+              <select id="reg-role" class="login-input" style="padding-left: 40px;" required>
+                <option value="Employee">Employee (Submit & Track Claims)</option>
+                <option value="SO">Station Officer (SO) (First-Level Review)</option>
+                <option value="Admin">Accounts Officer (Admin) (Final Approval & Release)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <!-- Password -->
+            <div class="form-group">
+              <label for="reg-password">Password</label>
+              <div class="form-input-wrapper">
+                <i data-lucide="lock" class="input-icon-left" style="width: 18px; height: 18px;"></i>
+                <input type="password" id="reg-password" placeholder="Password" class="login-input" required>
+                <button type="button" class="password-toggle" onclick="togglePasswordVisibility('reg-password', this)">
+                  <i data-lucide="eye" style="width: 18px; height: 18px;"></i>
+                </button>
+              </div>
+            </div>
+            <!-- Confirm Password -->
+            <div class="form-group">
+              <label for="reg-confirmpassword">Confirm Password</label>
+              <div class="form-input-wrapper">
+                <i data-lucide="lock" class="input-icon-left" style="width: 18px; height: 18px;"></i>
+                <input type="password" id="reg-confirmpassword" placeholder="Confirm Password" class="login-input" required>
+                <button type="button" class="password-toggle" onclick="togglePasswordVisibility('reg-confirmpassword', this)">
+                  <i data-lucide="eye" style="width: 18px; height: 18px;"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="btn-row">
+            <button type="button" class="btn-secondary" onclick="switchView('login-view')">Back to Login</button>
+            <button type="submit" class="login-btn" style="flex:1;">Submit Registration</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- 1c. Forgot Password View -->
+  <div id="forgot-password-view" class="app-view">
+    <div class="auth-panel-container">
+      <div class="auth-form-card">
+        <div class="auth-card-header">
+          <i data-lucide="key-round" style="width: 28px; height: 28px; color: var(--police-light-blue);"></i>
+          <h2>Recover Password</h2>
+        </div>
+
+        <div id="forgot-alert" class="alert-box">
+          <i data-lucide="alert-circle" style="width: 16px; height: 16px; flex-shrink:0;"></i>
+          <span id="forgot-alert-text"></span>
+        </div>
+
+        <!-- Step 1: Request OTP -->
+        <form id="forgot-form-step1" onsubmit="handleForgotStep1(event)">
+          <p class="section-header-desc" style="margin-bottom: 20px;">
+            Please enter your registered Police User ID (PNO) and Email. We will simulate sending a 6-digit verification code.
+          </p>
+          <div class="form-group">
+            <label for="forgot-userid">User ID (PNO Number)</label>
+            <div class="form-input-wrapper">
+              <i data-lucide="hash" class="input-icon-left" style="width: 18px; height: 18px;"></i>
+              <input type="text" id="forgot-userid" placeholder="e.g. 12345678" class="login-input" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="forgot-email">Registered Email</label>
+            <div class="form-input-wrapper">
+              <i data-lucide="mail" class="input-icon-left" style="width: 18px; height: 18px;"></i>
+              <input type="email" id="forgot-email" placeholder="name@uppolice.gov.in" class="login-input" required>
+            </div>
+          </div>
+
+          <div class="btn-row">
+            <button type="button" class="btn-secondary" onclick="switchView('login-view')">Back</button>
+            <button type="submit" class="login-btn" style="flex:1;">Send Verification Code</button>
+          </div>
+        </form>
+
+        <!-- Step 2: Validate OTP and Set New Password (Hidden by default) -->
+        <form id="forgot-form-step2" onsubmit="handleForgotStep2(event)" style="display:none;">
+          <p class="section-header-desc" style="margin-bottom: 20px; color: #1e3a8a; background-color: #eff6ff; padding: 10px; border-radius: 6px;">
+            <i data-lucide="info" style="width: 16px; height: 16px; display:inline; margin-right:4px; vertical-align:middle;"></i>
+            A security code has been sent. Use simulated code <strong>789012</strong>.
+          </p>
+
+          <div class="form-group">
+            <label for="forgot-otp">Enter 6-Digit OTP</label>
+            <div class="form-input-wrapper">
+              <i data-lucide="key" class="input-icon-left" style="width: 18px; height: 18px;"></i>
+              <input type="text" id="forgot-otp" placeholder="Enter 789012" class="login-input" maxlength="6" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="forgot-newpass">Enter New Password</label>
+            <div class="form-input-wrapper">
+              <i data-lucide="lock" class="input-icon-left" style="width: 18px; height: 18px;"></i>
+              <input type="password" id="forgot-newpass" placeholder="New Password" class="login-input" required>
+            </div>
+          </div>
+
+          <div class="btn-row">
+            <button type="button" class="btn-secondary" onclick="resetForgotForm()">Cancel</button>
+            <button type="submit" class="login-btn" style="flex:1;">Update Password</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ==========================================
+       VIEW 2: INTERNAL OFFICERS PORTAL (DASHBOARD)
+       ========================================== -->
+  <div id="dashboard-view" class="app-view">
+    <div class="dashboard-layout">
+      <!-- Sidebar navigation -->
+      <aside class="dashboard-sidebar">
+        <div class="sidebar-brand">
+          <img src="assets/up_police_logo.png" alt="UP Police Logo" class="sidebar-brand-logo">
+          <span class="sidebar-brand-text">e-TA/DA Portal</span>
+        </div>
+
+        <div class="sidebar-profile">
+          <div class="profile-avatar-placeholder" id="db-profile-initials">RK</div>
+          <div class="profile-info">
+            <span class="profile-name" id="db-profile-name">Inspector Rajesh Singh</span>
+            <span class="profile-rank" id="db-profile-rank">Inspector (L&O)</span>
+          </div>
+        </div>
+
+        <ul class="sidebar-menu">
+          <!-- Employee menu items -->
+          <li class="menu-item active employee-only" onclick="switchDashboardSection('db-overview', this)">
+            <i data-lucide="layout-dashboard"></i>
+            <span>Dashboard Home</span>
+          </li>
+          <li class="menu-item employee-only" onclick="switchDashboardSection('db-new-claim', this)">
+            <i data-lucide="file-text"></i>
+            <span>Submit TA/DA Claim</span>
+          </li>
+          <li class="menu-item employee-only" onclick="switchDashboardSection('db-track-claims', this)">
+            <i data-lucide="search-code"></i>
+            <span>Track Claims</span>
+          </li>
+          <li class="menu-item employee-only" onclick="switchDashboardSection('db-mis-reports', this)">
+            <i data-lucide="bar-chart-4"></i>
+            <span>MIS & Reports</span>
+          </li>
+
+          <!-- Admin/SO menu items (Hidden by default) -->
+          <li class="menu-item admin-only" style="display: none;" onclick="switchDashboardSection('db-admin-overview', this)">
+            <i data-lucide="clipboard-list"></i>
+            <span>Review Claims</span>
+          </li>
+          <li class="menu-item admin-only" style="display: none;" onclick="switchDashboardSection('db-admin-audit', this)">
+            <i data-lucide="shield-alert"></i>
+            <span>System Audit Logs</span>
+          </li>
+
+          <!-- Shared items -->
+          <li class="menu-item" onclick="switchDashboardSection('db-profile', this)">
+            <i data-lucide="user-cog"></i>
+            <span>Officer Profile</span>
+          </li>
+          <li class="menu-item menu-item-logout" onclick="handleLogout()">
+            <i data-lucide="log-out"></i>
+            <span>Logout</span>
+          </li>
+        </ul>
+      </aside>
+
+      <!-- Main content panel -->
+      <main class="dashboard-main">
+        
+        <!-- 2a. Section: Overview -->
+        <section id="db-overview" class="dashboard-section active">
+          <div>
+            <h2 class="section-header-title" id="db-welcome-msg">Welcome Back, Inspector Rajesh!</h2>
+            <p class="section-header-desc">Here is the summary of your claim requests for the current fiscal year.</p>
+          </div>
+
+          <!-- Quick Statistics Cards -->
+          <div class="stats-grid">
+            <div class="stat-card total">
+              <div>
+                <span class="stat-label">Total Submissions</span>
+                <h3 class="stat-value" id="stat-total-claims">₹0</h3>
+              </div>
+              <div class="stat-icon-box">
+                <i data-lucide="receipt"></i>
+              </div>
+            </div>
+            <div class="stat-card pending">
+              <div>
+                <span class="stat-label">Pending Approval</span>
+                <h3 class="stat-value" id="stat-pending-claims">₹0</h3>
+              </div>
+              <div class="stat-icon-box">
+                <i data-lucide="clock"></i>
+              </div>
+            </div>
+            <div class="stat-card approved">
+              <div>
+                <span class="stat-label">Approved claims</span>
+                <h3 class="stat-value" id="stat-approved-claims">₹0</h3>
+              </div>
+              <div class="stat-icon-box">
+                <i data-lucide="check-circle-2"></i>
+              </div>
+            </div>
+            <div class="stat-card disbursed">
+              <div>
+                <span class="stat-label">Disbursed (Reimbursed)</span>
+                <h3 class="stat-value" id="stat-disbursed-claims">₹0</h3>
+              </div>
+              <div class="stat-icon-box">
+                <i data-lucide="wallet"></i>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Claims Log Table -->
+          <div class="dashboard-panel">
+            <div class="panel-header">
+              <span>Recent TA/DA Claims</span>
+              <button class="btn-secondary" style="padding: 6px 12px; font-size: 0.8rem; height: auto;" onclick="switchDashboardSection('db-new-claim', document.querySelector('.sidebar-menu li:nth-child(2)'))">
+                <i data-lucide="plus" style="width: 14px; height: 14px; display: inline-block; vertical-align: middle;"></i> New Claim
+              </button>
+            </div>
+            <div style="overflow-x: auto;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Claim ID</th>
+                    <th>Submission Date</th>
+                    <th>Journey Purpose</th>
+                    <th>Travel Cost</th>
+                    <th>DA Claimed</th>
+                    <th>Total Claim</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="overview-claims-tbody">
+                  <!-- Injected via JavaScript -->
+                  <tr>
+                    <td colspan="8" style="text-align: center; color: var(--text-gray); padding: 30px;">
+                      No claim data found. Submit a new claim to begin.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2b. Section: New Claim Submission Form -->
+        <section id="db-new-claim" class="dashboard-section">
+          <div>
+            <h2 class="section-header-title">New TA/DA Claim Submission</h2>
+            <p class="section-header-desc">Submit details of your official transit journey, including tickets and daily allowances.</p>
+          </div>
+
+          <div class="dashboard-panel" style="padding: 24px;">
+            <form id="claim-submission-form" onsubmit="handleClaimSubmit(event)">
+              
+              <!-- Section A: Travel Journey Details -->
+              <div class="form-section-title">
+                <i data-lucide="navigation"></i>
+                <span>Section A: Journey details</span>
+              </div>
+              
+              <div class="form-grid-3">
+                <div class="form-group">
+                  <label for="claim-journey-date">Date of Journey</label>
+                  <input type="date" id="claim-journey-date" class="claim-form-input" required>
+                </div>
+                <div class="form-group">
+                  <label for="claim-dep-station">Departure Station (From)</label>
+                  <input type="text" id="claim-dep-station" placeholder="e.g. Lucknow Police Lines" class="claim-form-input" required>
+                </div>
+                <div class="form-group">
+                  <label for="claim-arr-station">Arrival Station (To)</label>
+                  <input type="text" id="claim-arr-station" placeholder="e.g. Prayagraj HQ" class="claim-form-input" required>
+                </div>
+              </div>
+
+              <div class="form-grid-3">
+                <div class="form-group">
+                  <label for="claim-travel-mode">Mode of Travel</label>
+                  <select id="claim-travel-mode" class="claim-form-input" onchange="calculateClaimSums()" required>
+                    <option value="Train-AC">Train (AC 2 Tier / 3 Tier)</option>
+                    <option value="Train-Sleeper">Train (Sleeper Class)</option>
+                    <option value="Official-Vehicle">Government/Official Vehicle</option>
+                    <option value="Private-Car">Private Car / Taxi (Approved)</option>
+                    <option value="Bus">Public Bus</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="claim-ticket-no">Ticket / Reference Number</label>
+                  <input type="text" id="claim-ticket-no" placeholder="e.g. TKT-9831032" class="claim-form-input" required>
+                </div>
+                <div class="form-group">
+                  <label for="claim-distance">Estimated Distance (in km)</label>
+                  <input type="number" id="claim-distance" placeholder="e.g. 200" class="claim-form-input" min="1" oninput="calculateClaimSums()" required>
+                </div>
+              </div>
+
+              <div class="form-grid-3">
+                <div class="form-group">
+                  <label for="claim-ticket-fare">Ticket Fare (₹)</label>
+                  <input type="number" id="claim-ticket-fare" placeholder="₹ Amount paid" class="claim-form-input" min="0" oninput="calculateClaimSums()" required>
+                </div>
+              </div>
+
+              <!-- Section B: Daily Allowance (DA) details -->
+              <div class="form-section-title" style="margin-top: 16px;">
+                <i data-lucide="calendar"></i>
+                <span>Section B: Daily Allowance (DA) & Duty Details</span>
+              </div>
+
+              <div class="form-grid-3">
+                <div class="form-group">
+                  <label for="claim-purpose">Purpose of Transit</label>
+                  <select id="claim-purpose" class="claim-form-input" required>
+                    <option value="Criminal Investigation">Criminal Investigation / Raid</option>
+                    <option value="VIP Security Duty">VIP Security Duty</option>
+                    <option value="Law & Order Posting">Law & Order Emergency Posting</option>
+                    <option value="Official Seminar / Training">Official Training / Seminar</option>
+                    <option value="Court Evidence Duty">Court Evidence Representation</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="claim-da-days">Number of Days on Duty</label>
+                  <input type="number" id="claim-da-days" placeholder="e.g. 3" class="claim-form-input" min="1" oninput="calculateClaimSums()" required>
+                </div>
+                <div class="form-group">
+                  <label for="claim-da-rate">Daily Allowance Rate (₹ / Day)</label>
+                  <input type="number" id="claim-da-rate" value="500" class="claim-form-input" min="1" oninput="calculateClaimSums()" required>
+                </div>
+              </div>
+
+              <div class="form-grid-3">
+                <div class="form-group">
+                  <label for="claim-other-exp">Lodging / Hotel Charges (₹, if applicable)</label>
+                  <input type="number" id="claim-other-exp" placeholder="e.g. 1500" class="claim-form-input" min="0" oninput="calculateClaimSums()">
+                </div>
+              </div>
+
+              <!-- Live Auto Calculations Panel -->
+              <div class="calc-summary-panel">
+                <div>
+                  <div class="calc-title">Travel Fare Total</div>
+                  <div class="calc-value" id="calc-fare-val">₹0</div>
+                </div>
+                <div>
+                  <div class="calc-title">DA Total</div>
+                  <div class="calc-value" id="calc-da-val">₹0</div>
+                </div>
+                <div>
+                  <div class="calc-title">Hotel / Lodging</div>
+                  <div class="calc-value" id="calc-other-val">₹0</div>
+                </div>
+                <div>
+                  <div class="calc-title" style="color: var(--police-dark-blue); font-weight:700;">Grand Total Claim</div>
+                  <div class="calc-value grand-total" id="calc-grand-val">₹0</div>
+                </div>
+              </div>
+
+              <!-- Supporting Document Upload -->
+              <div class="form-section-title">
+                <i data-lucide="paperclip"></i>
+                <span>Section C: Attach Supporting Documentation</span>
+              </div>
+              <input type="file" id="claim-file-input" style="display:none;" accept=".pdf,.png,.jpg,.jpeg"
+                onchange="handleRealFileChange(event)">
+              <label for="claim-file-input" class="file-upload-wrapper" onclick="openClaimFilePicker(event)">
+                <i data-lucide="upload-cloud" class="file-upload-icon"></i>
+                <div class="file-upload-text" id="upload-status-text">Click to browse and upload ticket, diary log, or official duty order</div>
+                <div class="file-upload-subtext">PDF, JPEG, or PNG formats up to 5MB</div>
+              </label>
+
+              <div class="btn-row">
+                <button type="button" class="btn-secondary" style="max-width: 200px;" onclick="resetClaimForm()">Clear Fields</button>
+                <button type="submit" id="claim-submit-btn" class="login-btn" onclick="markClaimSubmitRequested()">Submit TA/DA Claim for Verification</button>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <!-- 2c. Section: Track Claims -->
+        <section id="db-track-claims" class="dashboard-section">
+          <div>
+            <h2 class="section-header-title">Real-time Claim Tracking</h2>
+            <p class="section-header-desc">Monitor the real-time approval stages of your submitted claims.</p>
+          </div>
+
+          <div class="dashboard-panel">
+            <div class="panel-header">Submitted Claims Logs</div>
+            <div style="overflow-x: auto;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Claim ID</th>
+                    <th>Journey Purpose</th>
+                    <th>Routing Status</th>
+                    <th>Grand Total</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="tracking-claims-tbody">
+                  <!-- Injected via JavaScript -->
+                  <tr>
+                    <td colspan="5" style="text-align: center; color: var(--text-gray); padding: 30px;">
+                      No claim logs found. Click "Submit TA/DA Claim" above.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Dynamic Tracking Stepper Display (Shows details when a row's track button is clicked) -->
+          <div class="dashboard-panel" id="stepper-details-panel" style="display:none;">
+            <div class="tracking-header">
+              <div class="tracking-detail-row">
+                <div class="detail-item-box">
+                  <span class="detail-item-label">Tracking Claim ID</span>
+                  <span class="detail-item-val" id="track-claim-id">#TA-12490</span>
+                </div>
+                <div class="detail-item-box">
+                  <span class="detail-item-label">Purpose</span>
+                  <span class="detail-item-val" id="track-purpose">Criminal Investigation</span>
+                </div>
+                <div class="detail-item-box">
+                  <span class="detail-item-label">Total Claimed Value</span>
+                  <span class="detail-item-val" id="track-total-val">₹4,200</span>
+                </div>
+                <div class="detail-item-box">
+                  <span class="detail-item-label">Current Stage</span>
+                  <span class="detail-item-val" id="track-status-text" style="color:var(--warning-color);">Desk Clerk Verification</span>
+                </div>
+                <div class="detail-item-box" id="track-attachment-box">
+                  <span class="detail-item-label">Attachment / Bill</span>
+                  <span class="detail-item-val" id="track-attachment-status" style="font-size: 0.85rem;"><a id="track-attachment-link" href="#" target="_blank" style="color:var(--police-gold); text-decoration: underline; font-weight:700;">View Receipt</a></span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Stepper Stepping nodes -->
+            <div class="stepper-container">
+              <div class="stepper-progress-line">
+                <div class="stepper-progress-fill" id="track-step-progress-fill" style="width: 33.3%;"></div>
+              </div>
+
+              <!-- Node 1 -->
+              <div class="step-node completed" id="step-node-1">
+                <div class="step-circle"><i data-lucide="check" style="width: 18px; height: 18px;"></i></div>
+                <span class="step-title">Claim Submitted</span>
+                <span class="step-date" id="step-date-1">02 July 2026</span>
+              </div>
+
+              <!-- Node 2 -->
+              <div class="step-node active" id="step-node-2">
+                <div class="step-circle" id="step-icon-2">2</div>
+                <span class="step-title">Desk Clerk Audit</span>
+                <span class="step-date" id="step-date-2">In Progress</span>
+              </div>
+
+              <!-- Node 3 -->
+              <div class="step-node" id="step-node-3">
+                <div class="step-circle" id="step-icon-3">3</div>
+                <span class="step-title">DDO / SP Approval</span>
+                <span class="step-date" id="step-date-3">Pending</span>
+              </div>
+
+              <!-- Node 4 -->
+              <div class="step-node" id="step-node-4">
+                <div class="step-circle" id="step-icon-4">4</div>
+                <span class="step-title">Treasury Release</span>
+                <span class="step-date" id="step-date-4">Pending</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2d. Section: MIS Reports -->
+        <section id="db-mis-reports" class="dashboard-section">
+          <div>
+            <h2 class="section-header-title">MIS & Reports Analytics</h2>
+            <p class="section-header-desc">Detailed analytics of claims disbursements, traveling modes distributions and spending logs.</p>
+          </div>
+
+          <div class="mis-grid">
+            <!-- Graphical Bar Chart panel -->
+            <div class="dashboard-panel">
+              <div class="panel-header">Monthly Claims Disbursements (₹ Current Fiscal Year)</div>
+              <!-- Custom Pure-CSS Chart -->
+              <div class="chart-container-box" id="mis-chart-bars">
+                <!-- Injected via JavaScript based on claims -->
+                <div class="chart-bar-wrapper">
+                  <div class="chart-bar" style="height: 40px;"><div class="chart-bar-tooltip">₹4,000</div></div>
+                  <span class="chart-bar-label">Apr</span>
+                </div>
+                <div class="chart-bar-wrapper">
+                  <div class="chart-bar" style="height: 70px;"><div class="chart-bar-tooltip">₹7,200</div></div>
+                  <span class="chart-bar-label">May</span>
+                </div>
+                <div class="chart-bar-wrapper">
+                  <div class="chart-bar" style="height: 120px;"><div class="chart-bar-tooltip">₹12,400</div></div>
+                  <span class="chart-bar-label">Jun</span>
+                </div>
+                <div class="chart-bar-wrapper">
+                  <div class="chart-bar" style="height: 20px;"><div class="chart-bar-tooltip">₹2,000</div></div>
+                  <span class="chart-bar-label">Jul</span>
+                </div>
+                <div class="chart-bar-wrapper">
+                  <div class="chart-bar" style="height: 0px;"><div class="chart-bar-tooltip">₹0</div></div>
+                  <span class="chart-bar-label">Aug</span>
+                </div>
+                <div class="chart-bar-wrapper">
+                  <div class="chart-bar" style="height: 0px;"><div class="chart-bar-tooltip">₹0</div></div>
+                  <span class="chart-bar-label">Sep</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Legend/Details sidebar panel -->
+            <div class="dashboard-panel">
+              <div class="panel-header">Spending Categories</div>
+              <ul class="legend-list">
+                <li class="legend-item">
+                  <span class="legend-color-label">
+                    <span class="legend-dot blue"></span>
+                    <span>Criminal Investigation</span>
+                  </span>
+                  <strong>45%</strong>
+                </li>
+                <li class="legend-item">
+                  <span class="legend-color-label">
+                    <span class="legend-dot gold"></span>
+                    <span>VIP Security Duty</span>
+                  </span>
+                  <strong>30%</strong>
+                </li>
+                <li class="legend-item">
+                  <span class="legend-color-label">
+                    <span class="legend-dot green"></span>
+                    <span>Court Duty Transit</span>
+                  </span>
+                  <strong>15%</strong>
+                </li>
+                <li class="legend-item">
+                  <span class="legend-color-label">
+                    <span class="legend-dot purple"></span>
+                    <span>Other Seminars / Postings</span>
+                  </span>
+                  <strong>10%</strong>
+                </li>
+              </ul>
+              <div style="padding: 20px; border-top: 1px solid #e2e8f0;">
+                <button class="login-btn" style="width: 100%; font-size: 0.9rem;" onclick="alert('PDF Report Generation: Compiled TA/DA logs exported successfully as UPP-TADA-Report.pdf!')">
+                  <i data-lucide="download" style="width: 16px; height: 16px;"></i> Export PDF Summary
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2e. Section: Profile -->
+        <section id="db-profile" class="dashboard-section">
+          <div>
+            <h2 class="section-header-title">Officer Profile Settings</h2>
+            <p class="section-header-desc">Manage bank account registration and official posting details for direct disbursal routing.</p>
+          </div>
+
+          <div class="dashboard-panel">
+            <div class="panel-header">Account and Posting Details</div>
+            
+            <div id="profile-success-alert" class="alert-box success">
+              <i data-lucide="check" style="width: 16px; height: 16px; flex-shrink:0;"></i>
+              <span>Profile details updated successfully!</span>
+            </div>
+
+            <div class="profile-card-details">
+              <!-- Avatar -->
+              <div class="profile-avatar-big" id="profile-avatar-letters">RK</div>
+              
+              <!-- Editable Form -->
+              <form id="profile-edit-form" onsubmit="handleProfileUpdate(event)" style="width: 100%;">
+                <div class="form-grid-2">
+                  <div class="form-group">
+                    <label>Full Officer Name</label>
+                    <input type="text" id="prof-name" class="claim-form-input" required>
+                  </div>
+                  <div class="form-group">
+                    <label>Police PNO / User ID</label>
+                    <input type="text" id="prof-userid" class="claim-form-input" readonly style="background-color:#e2e8f0; cursor:not-allowed;">
+                  </div>
+                </div>
+
+                <div class="form-grid-2">
+                  <div class="form-group">
+                    <label>Designation / Current Rank</label>
+                    <input type="text" id="prof-rank" class="claim-form-input" required>
+                  </div>
+                  <div class="form-group">
+                    <label>Posting District / HQ Unit</label>
+                    <input type="text" id="prof-posting" class="claim-form-input" required>
+                  </div>
+                </div>
+
+                <div class="form-grid-2" style="border-top: 1px solid #f1f5f9; padding-top: 18px; margin-top: 10px;">
+                  <div class="form-group">
+                    <label>Reimbursement Bank Name</label>
+                    <input type="text" id="prof-bank-name" placeholder="State Bank of India" class="claim-form-input" required>
+                  </div>
+                  <div class="form-group">
+                    <label>Bank Account Number</label>
+                    <input type="text" id="prof-bank-acct" placeholder="e.g. 10923891032" class="claim-form-input" required>
+                  </div>
+                </div>
+
+                <div class="form-grid-2">
+                  <div class="form-group">
+                    <label>Bank IFS Code</label>
+                    <input type="text" id="prof-bank-ifsc" placeholder="e.g. SBIN0001092" class="claim-form-input" required>
+                  </div>
+                  <div class="form-group">
+                    <label>Mobile Number</label>
+                    <input type="tel" id="prof-mobile" class="claim-form-input" required>
+                  </div>
+                </div>
+
+                <div class="btn-row" style="justify-content: flex-end;">
+                  <button type="submit" class="login-btn" style="max-width: 250px;">Save Profile Updates</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2f. Section: Admin Overview / Reviews -->
+        <section id="db-admin-overview" class="dashboard-section">
+          <div>
+            <h2 class="section-header-title" id="review-dashboard-title">Admin Approval Dashboard</h2>
+            <p class="section-header-desc" id="review-dashboard-desc">Manage, audit, and approve official transit and travel allowance requests.</p>
+          </div>
+
+          <!-- Quick Statistics Cards for Admin -->
+          <div class="stats-grid">
+            <div class="stat-card pending">
+              <div>
+                <span class="stat-label">Awaiting Your Action</span>
+                <h3 class="stat-value" id="admin-stat-pending">0</h3>
+              </div>
+              <div class="stat-icon-box">
+                <i data-lucide="clock"></i>
+              </div>
+            </div>
+            <div class="stat-card approved">
+              <div>
+                <span class="stat-label">Disbursed (Reimbursed)</span>
+                <h3 class="stat-value" id="admin-stat-disbursed">₹0</h3>
+              </div>
+              <div class="stat-icon-box">
+                <i data-lucide="wallet"></i>
+              </div>
+            </div>
+            <div class="stat-card total">
+              <div>
+                <span class="stat-label">Total Claims Audited</span>
+                <h3 class="stat-value" id="admin-stat-total">0</h3>
+              </div>
+              <div class="stat-icon-box">
+                <i data-lucide="receipt"></i>
+              </div>
+            </div>
+          </div>
+
+          <!-- Filters Panel -->
+          <div class="dashboard-panel" style="padding: 18px 24px; margin-bottom: 24px;">
+            <div class="panel-header" id="review-filter-title" style="border-bottom: none; padding-bottom: 0; margin-bottom: 12px;">Filter Pending Claims</div>
+            <div class="form-grid-3" style="margin-top: 0;">
+              <div class="form-group" style="margin-bottom: 0;">
+                <label for="admin-filter-posting" style="font-size: 0.75rem;">Posting Station/Unit</label>
+                <input type="text" id="admin-filter-posting" placeholder="Search by posting..." class="claim-form-input" style="height: 38px; font-size: 0.85rem;" oninput="refreshAdminClaimsTable()">
+              </div>
+              <div class="form-group" style="margin-bottom: 0;">
+                <label for="admin-filter-rank" style="font-size: 0.75rem;">Officer Rank</label>
+                <select id="admin-filter-rank" class="claim-form-input" style="height: 38px; font-size: 0.85rem;" onchange="refreshAdminClaimsTable()">
+                  <option value="">All Ranks</option>
+                  <option value="Inspector (L&O)">Inspector (L&O)</option>
+                  <option value="Circle Officer (CO)">Circle Officer (CO)</option>
+                  <option value="Station Officer">Station Officer</option>
+                  <option value="Senior Accounts Officer">Senior Accounts Officer</option>
+                  <option value="Sub-Inspector">Sub-Inspector</option>
+                  <option value="Constable">Constable</option>
+                </select>
+              </div>
+              <div class="form-group" style="margin-bottom: 0;">
+                <label for="admin-filter-date" style="font-size: 0.75rem;">Journey Date</label>
+                <input type="date" id="admin-filter-date" class="claim-form-input" style="height: 38px; font-size: 0.85rem;" onchange="refreshAdminClaimsTable()">
+              </div>
+            </div>
+            <div class="btn-row" style="margin-top: 12px; justify-content: flex-end;">
+              <button class="btn-secondary" style="padding: 6px 12px; font-size: 0.8rem; height: auto; max-width: 150px;" onclick="resetAdminFilters()">Reset Filters</button>
+            </div>
+          </div>
+
+          <!-- Pending Claims Table -->
+          <div class="dashboard-panel">
+            <div class="panel-header" id="review-table-title">Claims Awaiting Verification</div>
+            <div style="overflow-x: auto;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Claim ID</th>
+                    <th>Officer Name</th>
+                    <th>Rank & Unit</th>
+                    <th>Journey Purpose</th>
+                    <th>Total Claim</th>
+                    <th>Journey Date</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="admin-claims-tbody">
+                  <tr>
+                    <td colspan="7" style="text-align: center; color: var(--text-gray); padding: 30px;">
+                      No claims found matching review queue criteria.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2g. Section: Admin Audit Logs -->
+        <section id="db-admin-audit" class="dashboard-section">
+          <div>
+            <h2 class="section-header-title">System Audit Logs</h2>
+            <p class="section-header-desc">Auditing tracker logging all portal user registration, login, uploads, and approval operations.</p>
+          </div>
+
+          <div class="dashboard-panel">
+            <div class="panel-header">Authentication & Disbursal Logs</div>
+            <div style="overflow-x: auto;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Log ID</th>
+                    <th>Timestamp</th>
+                    <th>User ID (PNO)</th>
+                    <th>Action Event</th>
+                    <th>Description Details</th>
+                  </tr>
+                </thead>
+                <tbody id="admin-audit-tbody">
+                  <tr>
+                    <td colspan="5" style="text-align: center; color: var(--text-gray); padding: 30px;">
+                      No audit events loaded.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+
+  <!-- ==========================================
+       FOOTER SECTION (Matches original image)
+       ========================================== -->
+  <footer class="portal-footer">
+    <div class="footer-left">
+      <i data-lucide="lock" style="width: 16px; height: 16px;"></i>
+      <span>Secure Portal</span>
+    </div>
+    <div class="footer-center">
+      <span>© 2024 Uttar Pradesh Police. All Rights Reserved.</span>
+    </div>
+    <div class="footer-right">
+      <span>Designed & Developed for Policing Excellence</span>
+    </div>
+  </footer>
+
+  <!-- Review Modal Overlay -->
+  <div id="review-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Review Claim: <span id="review-claim-id">#TA-00000</span></h3>
+        <button type="button" class="close-btn" onclick="closeReviewModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="review-grid">
+          <!-- Officer info -->
+          <div class="review-section">
+            <h4>Officer Information</h4>
+            <div class="review-row"><strong>Name:</strong> <span id="review-officer-name">N/A</span></div>
+            <div class="review-row"><strong>PNO/ID:</strong> <span id="review-officer-pno">N/A</span></div>
+            <div class="review-row"><strong>Rank:</strong> <span id="review-officer-rank">N/A</span></div>
+            <div class="review-row"><strong>Posting Unit:</strong> <span id="review-officer-posting">N/A</span></div>
+          </div>
+          <!-- Claim info -->
+          <div class="review-section">
+            <h4>Transit Claim Info</h4>
+            <div class="review-row"><strong>Journey Date:</strong> <span id="review-journey-date">N/A</span></div>
+            <div class="review-row"><strong>Route:</strong> <span id="review-route">N/A</span></div>
+            <div class="review-row"><strong>Travel Mode:</strong> <span id="review-travel-mode">N/A</span> (Ticket: <span id="review-ticket-no">N/A</span>)</div>
+            <div class="review-row"><strong>Distance:</strong> <span id="review-distance">0 km</span> | <strong>Fare:</strong> ₹<span id="review-fare">0</span></div>
+            <div class="review-row"><strong>Daily Allowance:</strong> <span id="review-da-days">0</span> days @ ₹<span id="review-da-rate">0</span> (Total: ₹<span id="review-da-total">0</span>)</div>
+            <div class="review-row"><strong>Lodging/Other:</strong> ₹<span id="review-other">0</span></div>
+            <div class="review-row review-grand-total"><strong>Grand Total Claimed:</strong> ₹<span id="review-grand-total">0</span></div>
+            <div class="review-row" style="margin-top: 6px;"><strong>Journey Purpose:</strong> <span id="review-purpose">N/A</span></div>
+          </div>
+        </div>
+        
+        <!-- Attached Receipts -->
+        <div class="review-attachment-section" style="margin-top: 16px; border-top: 1px solid #e2e8f0; padding-top: 12px;">
+          <h4>Uploaded Receipts & Bills</h4>
+          <div id="review-attachment-box" style="margin-top: 8px;">
+            <!-- Will render dynamic receipt links -->
+          </div>
+        </div>
+
+        <!-- Remarks Input -->
+        <div class="review-action-section" style="margin-top: 16px; border-top: 1px solid #e2e8f0; padding-top: 12px;">
+          <label for="review-remarks" style="font-weight: 600; color: var(--police-dark-blue);">Reviewer Comments / Audit Remarks</label>
+          <textarea id="review-remarks" placeholder="Enter remarks (required for rejection, recommended for approval)..." class="claim-form-input" style="height: 70px; resize: none; margin-top: 6px;"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" onclick="closeReviewModal()">Cancel</button>
+        <button type="button" class="btn-danger" id="review-btn-reject" onclick="submitReviewAction('reject')">Reject Claim</button>
+        <button type="button" class="btn-success" id="review-btn-approve" onclick="submitReviewAction('approve')">Approve Claim</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Include Portal Interactive Logic -->
+  <script src="script.js"></script>
+</body>
+</html>
