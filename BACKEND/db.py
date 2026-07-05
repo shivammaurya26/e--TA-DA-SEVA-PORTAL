@@ -6,6 +6,7 @@ from pymongo import MongoClient
 MONGO_URI = 'mongodb+srv://cybercrimecop54_db_user:HsDluodpnXz2HVkH@cluster0.dxraidx.mongodb.net/?appName=Cluster0'
 DB_NAME = 'etada_portal'
 
+
 def get_db():
     client = MongoClient(MONGO_URI)
     db = client[DB_NAME]
