@@ -532,6 +532,9 @@ api.add_resource(UploadResource, '/api/upload')
 api.add_resource(AuditLogsResource, '/api/audit-logs')
 api.add_resource(ProfileResource, '/api/profile')
 
+# Gunicorn imports app:app in production, so initialize the database at import time.
+init_db()
+
 if __name__ == '__main__':
-    init_db()
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=True)

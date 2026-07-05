@@ -2,9 +2,9 @@ import os
 import datetime
 from pymongo import MongoClient
 
-# Use local MongoDB
-MONGO_URI = 'mongodb+srv://cybercrimecop54_db_user:HsDluodpnXz2HVkH@cluster0.dxraidx.mongodb.net/?appName=Cluster0'
-DB_NAME = 'etada_portal'
+# Use local MongoDB by default; set MONGO_URI on Render for MongoDB Atlas.
+MONGO_URI = os.environ.get('MONGO_URI', 'mongodb://localhost:27017/')
+DB_NAME = os.environ.get('DB_NAME', 'etada_portal')
 
 
 def get_db():

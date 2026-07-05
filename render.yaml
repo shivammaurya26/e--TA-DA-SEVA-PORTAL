@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: e-ta-da-seva-portal
+    env: python
+    rootDir: BACKEND
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    envVars:
+      - key: DB_NAME
+        value: etada_portal
+      - key: MONGO_URI
+        sync: false
