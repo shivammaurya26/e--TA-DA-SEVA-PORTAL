@@ -1,4 +1,5 @@
 import os
+from urllib.parse import urlparse
 from pymongo import MongoClient
 from pymongo.errors import ConfigurationError, PyMongoError
 
@@ -15,6 +16,29 @@ def get_mongo_uri():
         raise ConfigurationError('MONGO_URI is not configured. Add your MongoDB Atlas connection string in Render environment variables.')
 
     return 'mongodb://localhost:27017/'
+
+
+def get_mongo_config_status():
+    mongo_uri = os.environ.get('MONGO_URI', '').strip()
+    if not mongo_uri:
+        return {
+            'configured': False,
+            'message': 'MONGO_URI is missing in Render environment variables.'
+        }
+
+    parsed = urlparse(mongo_uri)
+    if parsed.scheme not in ('mongodb', 'mongodb+srv'):
+        return {
+            'configured': False,
+            'message': 'MONGO_URI must start with mongodb:// or mongodb+srv://.'
+        }
+
+    return {
+        'configured': True,
+        'scheme': parsed.scheme,
+        'host': parsed.hostname or 'unknown',
+        'database': DB_NAME
+    }
 
 
 def get_db():

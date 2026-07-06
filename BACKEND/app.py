@@ -13,7 +13,7 @@ from werkzeug.utils import secure_filename
 from werkzeug.exceptions import HTTPException
 from bson import ObjectId
 from pymongo.errors import PyMongoError
-from db import get_db, init_db
+from db import get_db, get_mongo_config_status, init_db
 
 # Resolve paths relative to this file's directory (BACKEND/)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -36,7 +36,15 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 def handle_database_error(error):
     print(f"Database error: {error}")
     return jsonify({
-        'message': 'Database connection error. Please check MONGO_URI on Render.'
+        'message': 'Database connection error. Please check MongoDB Atlas and MONGO_URI on Render.',
+        'mongoConfig': get_mongo_config_status(),
+        'checklist': [
+            'Render Environment has MONGO_URI set',
+            'MONGO_URI starts with mongodb+srv:// for MongoDB Atlas',
+            'Atlas Database Access username and password are correct',
+            'Atlas Network Access allows Render, usually 0.0.0.0/0',
+            'Password special characters are URL encoded'
+        ]
     }), 503
 
 @app.errorhandler(Exception)
@@ -209,7 +217,10 @@ class LoginResource(Resource):
             }, 200
         except PyMongoError as db_error:
             print(f"Login database error: {db_error}")
-            return {'message': 'Database connection error. Please check MONGO_URI on Render.'}, 503
+            return {
+                'message': 'Database connection error. Please check MongoDB Atlas and MONGO_URI on Render.',
+                'mongoConfig': get_mongo_config_status()
+            }, 503
 
 
 class RegisterResource(Resource):
@@ -272,7 +283,10 @@ class RegisterResource(Resource):
             return {'message': 'Registration successful'}, 201
         except PyMongoError as db_error:
             print(f"Registration database error: {db_error}")
-            return {'message': 'Database connection error. Please check MONGO_URI on Render.'}, 503
+            return {
+                'message': 'Database connection error. Please check MongoDB Atlas and MONGO_URI on Render.',
+                'mongoConfig': get_mongo_config_status()
+            }, 503
         except ValueError as value_error:
             print(f"Registration validation error: {value_error}")
             return {'message': 'Registration details are invalid. Please check the form and try again.'}, 400
@@ -612,13 +626,18 @@ def health_check():
     try:
         db = get_db()
         db.command('ping')
-        return jsonify({'status': 'ok', 'database': 'connected'}), 200
+        return jsonify({
+            'status': 'ok',
+            'database': 'connected',
+            'mongoConfig': get_mongo_config_status()
+        }), 200
     except PyMongoError as error:
         print(f"Health check database error: {error}")
         return jsonify({
             'status': 'error',
             'database': 'not connected',
-            'message': 'Check MONGO_URI on Render'
+            'message': 'Check MongoDB Atlas and MONGO_URI on Render',
+            'mongoConfig': get_mongo_config_status()
         }), 503
 
 @app.route('/uploads/<path:filename>')
