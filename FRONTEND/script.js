@@ -6,9 +6,20 @@ let token = null;
 let currentCaptchaText = "";
 let currentReviewClaims = []; // Store claims fetched for review
 let selectedReviewClaim = null; // Store claim currently selected for modal review
+const PRODUCTION_API_BASE_URL = "https://e-ta-da-seva-portal.onrender.com";
+const isBackendOrigin = window.location.origin.includes("e-ta-da-seva-portal.onrender.com")
+  || window.location.origin.includes("127.0.0.1:5000")
+  || window.location.origin.includes("localhost:5000");
+const API_BASE_URL = window.location.protocol === "file:" || !isBackendOrigin
+  ? PRODUCTION_API_BASE_URL
+  : window.location.origin;
 
 // captcha characters
 const CAPTCHA_CHARS = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
+
+function apiUrl(path) {
+  return `${API_BASE_URL}${path}`;
+}
 
 // Initialize page on load
 window.addEventListener("DOMContentLoaded", () => {
@@ -234,7 +245,7 @@ async function handleLoginSubmit(event) {
 
   // 2. API Login call
   try {
-    const res = await fetch("https://e-ta-da-seva-portal.onrender.com/api/login", {
+    const res = await fetch(apiUrl("/api/login"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userid: userIdInput, password: passwordInput })
@@ -282,7 +293,7 @@ async function demoLogin(userid) {
   errorAlert.style.display = "none";
 
   try {
-    const res = await fetch("https://e-ta-da-seva-portal.onrender.com/api/login", {
+    const res = await fetch(apiUrl("/api/login"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userid: userid, password: "password123" })
@@ -355,7 +366,7 @@ async function handleRegisterSubmit(event) {
   }
 
   try {
-    const res = await fetch("https://e-ta-da-seva-portal.onrender.com/api/register", {
+    const res = await fetch(apiUrl("/api/register"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userid, password, fullname, rank, posting, mobile, email, role })
@@ -487,7 +498,7 @@ async function handleRealFileChange(event) {
   formData.append("file", file);
 
   try {
-    const res = await fetch("https://e-ta-da-seva-portal.onrender.com/api/upload", {
+    const res = await fetch(apiUrl("/api/upload"), {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${token}`
@@ -526,7 +537,7 @@ async function refreshOverviewDashboard() {
   document.getElementById("db-welcome-msg").innerText = `Welcome Back, ${currentUser.fullname}!`;
 
   try {
-    const res = await fetch(`https://e-ta-da-seva-portal.onrender.com/api/claim/user/${currentUser.userid}`, {
+    const res = await fetch(apiUrl(`/api/claim/user/${currentUser.userid}`), {
       headers: { "Authorization": `Bearer ${token}` }
     });
 
@@ -696,7 +707,7 @@ async function handleClaimSubmit(event) {
   };
 
   try {
-    const res = await fetch("https://e-ta-da-seva-portal.onrender.com/api/claim/submit", {
+    const res = await fetch(apiUrl("/api/claim/submit"), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -743,7 +754,7 @@ async function refreshTrackingTable() {
   if (!currentUser || !token) return;
 
   try {
-    const res = await fetch(`https://e-ta-da-seva-portal.onrender.com/api/claim/user/${currentUser.userid}`, {
+    const res = await fetch(apiUrl(`/api/claim/user/${currentUser.userid}`), {
       headers: { "Authorization": `Bearer ${token}` }
     });
 
@@ -797,7 +808,7 @@ async function showClaimTracking(claimId) {
   if (!currentUser || !token) return;
 
   try {
-    const res = await fetch(`https://e-ta-da-seva-portal.onrender.com/api/claim/user/${currentUser.userid}`, {
+    const res = await fetch(apiUrl(`/api/claim/user/${currentUser.userid}`), {
       headers: { "Authorization": `Bearer ${token}` }
     });
     if (!res.ok) throw new Error();
@@ -906,7 +917,7 @@ async function renderMISCharts() {
   if (!currentUser || !token) return;
 
   try {
-    const res = await fetch(`https://e-ta-da-seva-portal.onrender.com/api/claim/user/${currentUser.userid}`, {
+    const res = await fetch(apiUrl(`/api/claim/user/${currentUser.userid}`), {
       headers: { "Authorization": `Bearer ${token}` }
     });
     if (!res.ok) return;
@@ -959,7 +970,7 @@ async function loadProfileDetails() {
   if (!currentUser || !token) return;
 
   try {
-    const res = await fetch("https://e-ta-da-seva-portal.onrender.com/api/profile", {
+    const res = await fetch(apiUrl("/api/profile"), {
       headers: { "Authorization": `Bearer ${token}` }
     });
     if (!res.ok) throw new Error();
@@ -994,7 +1005,7 @@ async function handleProfileUpdate(event) {
   const mobile = document.getElementById("prof-mobile").value.trim();
 
   try {
-    const res = await fetch("https://e-ta-da-seva-portal.onrender.com/api/profile", {
+    const res = await fetch(apiUrl("/api/profile"), {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -1088,7 +1099,7 @@ async function refreshAdminClaimsTable() {
   }
 
   // Build query
-  let url = `https://e-ta-da-seva-portal.onrender.com/api/claim/pending?posting=${encodeURIComponent(posting)}&rank=${encodeURIComponent(rank)}&date=${encodeURIComponent(formattedDate)}`;
+  let url = apiUrl(`/api/claim/pending?posting=${encodeURIComponent(posting)}&rank=${encodeURIComponent(rank)}&date=${encodeURIComponent(formattedDate)}`);
 
   try {
     const res = await fetch(url, {
@@ -1147,7 +1158,7 @@ async function refreshAdminClaimsTable() {
 
 async function loadAdminStatsSums() {
   try {
-    const res = await fetch("https://e-ta-da-seva-portal.onrender.com/api/audit-logs", {
+    const res = await fetch(apiUrl("/api/audit-logs"), {
       headers: { "Authorization": `Bearer ${token}` }
     });
     if (!res.ok) return;
@@ -1257,7 +1268,7 @@ async function submitReviewAction(action) {
   }
 
   try {
-    const res = await fetch(`https://e-ta-da-seva-portal.onrender.com/api/claim/${selectedReviewClaim.id}/approve`, {
+    const res = await fetch(apiUrl(`/api/claim/${selectedReviewClaim.id}/approve`), {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -1286,7 +1297,7 @@ async function refreshAdminAuditLogs() {
   if (!currentUser || !token) return;
 
   try {
-    const res = await fetch("https://e-ta-da-seva-portal.onrender.com/api/audit-logs", {
+    const res = await fetch(apiUrl("/api/audit-logs"), {
       headers: { "Authorization": `Bearer ${token}` }
     });
 

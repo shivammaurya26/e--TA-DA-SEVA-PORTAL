@@ -7,9 +7,12 @@ import datetime
 import os
 import time
 import random
+import traceback
 from functools import wraps
 from werkzeug.utils import secure_filename
+from werkzeug.exceptions import HTTPException
 from bson import ObjectId
+from pymongo.errors import PyMongoError
 from db import get_db, init_db
 
 # Resolve paths relative to this file's directory (BACKEND/)
@@ -29,33 +32,67 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 # Helpers
 # ---------------------------------------------------------------------------
 
+@app.errorhandler(PyMongoError)
+def handle_database_error(error):
+    print(f"Database error: {error}")
+    return jsonify({
+        'message': 'Database connection error. Please check MONGO_URI on Render.'
+    }), 503
+
+@app.errorhandler(Exception)
+def handle_unexpected_error(error):
+    if isinstance(error, HTTPException):
+        return jsonify({'message': error.description}), error.code
+
+    print(f"Unexpected server error: {error}")
+    traceback.print_exc()
+    return jsonify({
+        'message': 'Server error. Please check Render logs for details.'
+    }), 500
+
+
+def safe_text(value, default=''):
+    if value is None:
+        return default
+    return str(value)
+
+
+def safe_number(value, default=0):
+    if value in (None, ''):
+        return default
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return default
+
+
 def serialize_claim(doc):
     """Convert a MongoDB claim document to a JSON-safe dict."""
     return {
-        'id': doc.get('id', ''),
-        'userid': doc.get('userid', ''),
-        'submitDate': doc.get('submit_date', ''),
-        'journeyDate': doc.get('journey_date', ''),
-        'depStation': doc.get('dep_station', ''),
-        'arrStation': doc.get('arr_station', ''),
-        'travelMode': doc.get('travel_mode', ''),
-        'ticketNo': doc.get('ticket_no', ''),
-        'distance': doc.get('distance', ''),
-        'ticketFare': doc.get('ticket_fare', ''),
-        'purpose': doc.get('purpose', ''),
-        'daDays': doc.get('da_days', ''),
-        'daRate': doc.get('da_rate', ''),
-        'otherExp': doc.get('other_exp', ''),
-        'totalClaim': doc.get('total_claim', ''),
-        'status': doc.get('status', ''),
-        'attachment': doc.get('attachment', ''),
-        'soRemarks': doc.get('so_remarks', ''),
-        'accountsRemarks': doc.get('accounts_remarks', ''),
+        'id': safe_text(doc.get('id')),
+        'userid': safe_text(doc.get('userid')),
+        'submitDate': safe_text(doc.get('submit_date')),
+        'journeyDate': safe_text(doc.get('journey_date')),
+        'depStation': safe_text(doc.get('dep_station')),
+        'arrStation': safe_text(doc.get('arr_station')),
+        'travelMode': safe_text(doc.get('travel_mode')),
+        'ticketNo': safe_text(doc.get('ticket_no')),
+        'distance': safe_number(doc.get('distance')),
+        'ticketFare': safe_number(doc.get('ticket_fare')),
+        'purpose': safe_text(doc.get('purpose')),
+        'daDays': safe_number(doc.get('da_days')),
+        'daRate': safe_number(doc.get('da_rate')),
+        'otherExp': safe_number(doc.get('other_exp')),
+        'totalClaim': safe_number(doc.get('total_claim')),
+        'status': safe_text(doc.get('status')),
+        'attachment': safe_text(doc.get('attachment')),
+        'soRemarks': safe_text(doc.get('so_remarks')),
+        'accountsRemarks': safe_text(doc.get('accounts_remarks')),
         'timeline': {
-            'step1': doc.get('timeline_step1', ''),
-            'step2': doc.get('timeline_step2', ''),
-            'step3': doc.get('timeline_step3', ''),
-            'step4': doc.get('timeline_step4', '')
+            'step1': safe_text(doc.get('timeline_step1')),
+            'step2': safe_text(doc.get('timeline_step2')),
+            'step3': safe_text(doc.get('timeline_step3')),
+            'step4': safe_text(doc.get('timeline_step4'))
         }
     }
 
@@ -68,6 +105,19 @@ def decode_auth_token(token):
         return 'Signature expired. Please log in again.'
     except jwt.InvalidTokenError:
         return 'Invalid token. Please log in again.'
+
+
+def verify_user_password(user, password):
+    password_hash = user.get('password_hash', '')
+    if password_hash:
+        try:
+            return bcrypt.checkpw(password.encode('utf-8'), password_hash.encode('utf-8'))
+        except ValueError:
+            print(f"Invalid password hash stored for user {user.get('userid', '')}")
+            return False
+
+    legacy_password = user.get('password', '')
+    return bool(legacy_password) and password == legacy_password
 
 
 def token_required(f):
@@ -83,8 +133,10 @@ def token_required(f):
         data = decode_auth_token(token)
         if isinstance(data, str):
             return {'message': data}, 401
+        if not data.get('userid'):
+            return {'message': 'Invalid token. Please log in again.'}, 401
         request.user_id = data['userid']
-        request.user_role = data['role']
+        request.user_role = data.get('role', 'Employee')
         return f(*args, **kwargs)
     return decorated
 
@@ -94,99 +146,136 @@ def token_required(f):
 
 class LoginResource(Resource):
     def post(self):
-        data = request.get_json()
-        if not data or 'userid' not in data or 'password' not in data:
-            return {'message': 'Missing userid or password'}, 400
+        try:
+            data = request.get_json()
+            if not data or 'userid' not in data or 'password' not in data:
+                return {'message': 'Missing userid or password'}, 400
 
-        userid = str(data['userid']).strip()
-        password = data['password']
+            userid = str(data['userid']).strip()
+            password = data['password']
 
-        db = get_db()
-        user = db.users.find_one({'userid': userid})
+            db = get_db()
+            user = db.users.find_one({'userid': userid})
 
-        if not user:
-            return {'message': 'Invalid User ID or Password'}, 401
+            if not user:
+                return {'message': 'Invalid User ID or Password'}, 401
 
-        if not bcrypt.checkpw(password.encode('utf-8'), user['password_hash'].encode('utf-8')):
-            return {'message': 'Invalid User ID or Password'}, 401
+            if not verify_user_password(user, password):
+                return {'message': 'Invalid User ID or Password'}, 401
 
-        payload = {
-            'userid': user['userid'],
-            'role': user['role'],
-            'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=24)
-        }
-        token = jwt.encode(payload, SECRET_KEY, algorithm='HS256')
+            if not user.get('password_hash') and user.get('password') == password:
+                db.users.update_one(
+                    {'_id': user['_id']},
+                    {
+                        '$set': {
+                            'password_hash': bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+                        },
+                        '$unset': {'password': ''}
+                    }
+                )
 
-        now_str = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        db.audit_logs.insert_one({
-            'timestamp': now_str,
-            'userid': userid,
-            'action': 'LOGIN',
-            'details': f"User logged in from IP {request.remote_addr}"
-        })
-
-        return {
-            'token': token,
-            'user': {
-                'userid': user['userid'],
-                'fullname': user['fullname'],
-                'rank': user['rank'],
-                'posting': user['posting'],
-                'role': user['role'],
-                'bankName': user.get('bank_name', ''),
-                'bankAcct': user.get('bank_acct', ''),
-                'bankIfsc': user.get('bank_ifsc', ''),
-                'mobile': user.get('mobile', ''),
-                'email': user.get('email', '')
+            payload = {
+                'userid': user.get('userid', userid),
+                'role': user.get('role', 'Employee'),
+                'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=24)
             }
-        }, 200
+            token = jwt.encode(payload, SECRET_KEY, algorithm='HS256')
+
+            try:
+                now_str = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                db.audit_logs.insert_one({
+                    'timestamp': now_str,
+                    'userid': userid,
+                    'action': 'LOGIN',
+                    'details': f"User logged in from IP {request.remote_addr}"
+                })
+            except PyMongoError as audit_error:
+                print(f"Login audit log skipped: {audit_error}")
+
+            return {
+                'token': token,
+                'user': {
+                    'userid': user.get('userid', userid),
+                    'fullname': user.get('fullname', ''),
+                    'rank': user.get('rank', ''),
+                    'posting': user.get('posting', ''),
+                    'role': user.get('role', 'Employee'),
+                    'bankName': user.get('bank_name', ''),
+                    'bankAcct': user.get('bank_acct', ''),
+                    'bankIfsc': user.get('bank_ifsc', ''),
+                    'mobile': user.get('mobile', ''),
+                    'email': user.get('email', '')
+                }
+            }, 200
+        except PyMongoError as db_error:
+            print(f"Login database error: {db_error}")
+            return {'message': 'Database connection error. Please check MONGO_URI on Render.'}, 503
 
 
 class RegisterResource(Resource):
     def post(self):
-        data = request.get_json()
-        required_fields = ['userid', 'password', 'fullname', 'rank', 'posting', 'mobile', 'email', 'role']
-        if not data or not all(k in data for k in required_fields):
-            return {'message': 'Missing required registration fields'}, 400
+        try:
+            data = request.get_json(silent=True) or {}
+            required_fields = ['userid', 'password', 'fullname', 'rank', 'posting', 'mobile', 'email', 'role']
+            if not all(str(data.get(k, '')).strip() for k in required_fields):
+                return {'message': 'Please fill all required registration fields.'}, 400
 
-        userid = str(data['userid']).strip()
-        password = data['password']
-        fullname = data['fullname'].strip()
-        rank = data['rank'].strip()
-        posting = data['posting'].strip()
-        mobile = data['mobile'].strip()
-        email = data['email'].strip()
-        role = data['role'].strip()
+            userid = str(data['userid']).strip()
+            password = str(data['password'])
+            fullname = str(data['fullname']).strip()
+            rank = str(data['rank']).strip()
+            posting = str(data['posting']).strip()
+            mobile = str(data['mobile']).strip()
+            email = str(data['email']).strip().lower()
+            role = str(data['role']).strip()
 
-        db = get_db()
-        if db.users.find_one({'userid': userid}):
-            return {'message': 'An officer account with this User ID (PNO) already exists!'}, 409
+            allowed_roles = {'Employee', 'SO', 'Admin'}
+            if role not in allowed_roles:
+                return {'message': 'Invalid portal role selected.'}, 400
+            if len(userid) < 5:
+                return {'message': 'User ID / PNO must be at least 5 digits.'}, 400
+            if len(password) < 6:
+                return {'message': 'Password must be at least 6 characters.'}, 400
 
-        hashed = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+            db = get_db()
+            if db.users.find_one({'userid': userid}):
+                return {'message': 'An officer account with this User ID (PNO) already exists. Please log in.'}, 409
 
-        db.users.insert_one({
-            'userid': userid,
-            'password_hash': hashed,
-            'fullname': fullname,
-            'rank': rank,
-            'posting': posting,
-            'mobile': mobile,
-            'email': email,
-            'role': role,
-            'bank_name': '',
-            'bank_acct': '',
-            'bank_ifsc': ''
-        })
+            hashed = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
-        now_str = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        db.audit_logs.insert_one({
-            'timestamp': now_str,
-            'userid': userid,
-            'action': 'REGISTER',
-            'details': f"Account registered with role: {role}"
-        })
+            db.users.insert_one({
+                'userid': userid,
+                'password_hash': hashed,
+                'fullname': fullname,
+                'rank': rank,
+                'posting': posting,
+                'mobile': mobile,
+                'email': email,
+                'role': role,
+                'bank_name': '',
+                'bank_acct': '',
+                'bank_ifsc': '',
+                'created_at': datetime.datetime.utcnow()
+            })
 
-        return {'message': 'Registration successful'}, 201
+            try:
+                now_str = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                db.audit_logs.insert_one({
+                    'timestamp': now_str,
+                    'userid': userid,
+                    'action': 'REGISTER',
+                    'details': f"Account registered with role: {role}"
+                })
+            except PyMongoError as audit_error:
+                print(f"Registration audit log skipped: {audit_error}")
+
+            return {'message': 'Registration successful'}, 201
+        except PyMongoError as db_error:
+            print(f"Registration database error: {db_error}")
+            return {'message': 'Database connection error. Please check MONGO_URI on Render.'}, 503
+        except ValueError as value_error:
+            print(f"Registration validation error: {value_error}")
+            return {'message': 'Registration details are invalid. Please check the form and try again.'}, 400
 
 # ---------------------------------------------------------------------------
 # Claim Resources
@@ -290,7 +379,11 @@ class ClaimPendingResource(Resource):
 
         result = []
         for claim in claim_docs:
-            user = db.users.find_one({'userid': claim['userid']}, {'_id': 0})
+            claim_userid = claim.get('userid')
+            if not claim_userid:
+                continue
+
+            user = db.users.find_one({'userid': claim_userid}, {'_id': 0})
             if not user:
                 continue
             if posting_filter and posting_filter.lower() not in user.get('posting', '').lower():
@@ -334,7 +427,7 @@ class ClaimApproveResource(Resource):
         log_details = ''
 
         if request.user_role == 'SO':
-            if claim['status'] != 'pending_so':
+            if claim.get('status') != 'pending_so':
                 return {'message': 'Claim is not in pending SO state'}, 400
             if action == 'approve':
                 new_status = 'pending_accounts'
@@ -357,7 +450,7 @@ class ClaimApproveResource(Resource):
                 log_details = f"SO rejected claim {claim_id}. Remarks: {remarks}"
 
         elif request.user_role == 'Admin':
-            if claim['status'] != 'pending_accounts':
+            if claim.get('status') != 'pending_accounts':
                 return {'message': 'Claim is not in pending Accounts state'}, 400
             if action == 'approve':
                 new_status = 'disbursed'
@@ -463,11 +556,11 @@ class ProfileResource(Resource):
             return {'message': 'User not found'}, 404
 
         return {
-            'userid': user['userid'],
-            'fullname': user['fullname'],
-            'rank': user['rank'],
-            'posting': user['posting'],
-            'role': user['role'],
+            'userid': user.get('userid', ''),
+            'fullname': user.get('fullname', ''),
+            'rank': user.get('rank', ''),
+            'posting': user.get('posting', ''),
+            'role': user.get('role', 'Employee'),
             'bankName': user.get('bank_name', ''),
             'bankAcct': user.get('bank_acct', ''),
             'bankIfsc': user.get('bank_ifsc', ''),
@@ -513,6 +606,20 @@ class ProfileResource(Resource):
 @app.route('/')
 def serve_index():
     return app.send_static_file('index.html')
+
+@app.route('/api/health')
+def health_check():
+    try:
+        db = get_db()
+        db.command('ping')
+        return jsonify({'status': 'ok', 'database': 'connected'}), 200
+    except PyMongoError as error:
+        print(f"Health check database error: {error}")
+        return jsonify({
+            'status': 'error',
+            'database': 'not connected',
+            'message': 'Check MONGO_URI on Render'
+        }), 503
 
 @app.route('/uploads/<path:filename>')
 def serve_uploaded_file(filename):
