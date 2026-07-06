@@ -215,7 +215,7 @@ class LoginResource(Resource):
                     'email': user.get('email', '')
                 }
             }, 200
-        except PyMongoError as db_error:
+        except (PyMongoError, ValueError) as db_error:
             print(f"Login database error: {db_error}")
             return {
                 'message': 'Database connection error. Please check MongoDB Atlas and MONGO_URI on Render.',
@@ -281,7 +281,7 @@ class RegisterResource(Resource):
                 print(f"Registration audit log skipped: {audit_error}")
 
             return {'message': 'Registration successful'}, 201
-        except PyMongoError as db_error:
+        except (PyMongoError, ValueError) as db_error:
             print(f"Registration database error: {db_error}")
             return {
                 'message': 'Database connection error. Please check MongoDB Atlas and MONGO_URI on Render.',
@@ -631,7 +631,7 @@ def health_check():
             'database': 'connected',
             'mongoConfig': get_mongo_config_status()
         }), 200
-    except PyMongoError as error:
+    except (PyMongoError, ValueError) as error:
         print(f"Health check database error: {error}")
         return jsonify({
             'status': 'error',

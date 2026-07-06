@@ -117,5 +117,5 @@ def init_db():
 
             db.users.insert_many(demo_users)
             print("Initialized MongoDB with demo users.")
-    except PyMongoError as exc:
+    except (PyMongoError, ValueError) as exc:
         print(f"MongoDB initialization skipped: {exc}")
