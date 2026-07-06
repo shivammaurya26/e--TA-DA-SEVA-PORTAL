@@ -1,17 +1,27 @@
 import os
-import datetime
 from pymongo import MongoClient
-from pymongo.errors import PyMongoError
+from pymongo.errors import ConfigurationError, PyMongoError
 
-# Use local MongoDB by default; set MONGO_URI on Render for MongoDB Atlas.
-MONGO_URI = os.environ.get('MONGO_URI', 'mongodb://localhost:27017/')
 DB_NAME = os.environ.get('DB_NAME', 'etada_portal')
+_client = None
+
+
+def get_mongo_uri():
+    mongo_uri = os.environ.get('MONGO_URI', '').strip()
+    if mongo_uri:
+        return mongo_uri
+
+    if os.environ.get('RENDER'):
+        raise ConfigurationError('MONGO_URI is not configured. Add your MongoDB Atlas connection string in Render environment variables.')
+
+    return 'mongodb://localhost:27017/'
 
 
 def get_db():
-    client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
-    db = client[DB_NAME]
-    return db
+    global _client
+    if _client is None:
+        _client = MongoClient(get_mongo_uri(), serverSelectionTimeoutMS=5000)
+    return _client[DB_NAME]
 
 def init_db():
     try:
